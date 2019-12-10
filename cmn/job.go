@@ -17,6 +17,8 @@
 
 package cmn
 
+import "github.com/bamzi/jobrunner"
+
 type Job struct {
 	App *App
 }
@@ -25,8 +27,11 @@ func NewJob(app *App) *Job {
 	return &Job{App: app}
 }
 
-
 func (j Job) Start() {
+	jobrunner.Start()
+}
+
+func (j Job) List() {
 
 }
 

@@ -30,6 +30,6 @@ type HomeController struct {
 
 func (c HomeController) Index(ctx *fasthttp.RequestCtx) {
 	c.JSONResponse(ctx, response.Success{
-		Data:	"Agente rest api",
+		Data:	"Agente",
 	}, http.StatusOK)
 }

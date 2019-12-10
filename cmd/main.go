@@ -24,8 +24,10 @@ import (
 	"github.com/akdilsiz/release-agent/model"
 	"github.com/spf13/viper"
 	"os"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 )
 
 var configFile string
@@ -34,12 +36,18 @@ var devMode bool
 func main() {
 	var mode model.MODE
 	var dbPath string
-	appPath, _ := os.Getwd()
-	dirs := strings.SplitAfter(appPath, "release-agent")
+	var appPath string
 
 	flag.BoolVar(&devMode, "dev", false, "Development Mode")
-	flag.StringVar(&configFile, "config", "release-agent.env", "Config file")
+	flag.StringVar(&configFile, "config", "release-agent.dev.env", "Config file")
+	flag.StringVar(&dbPath, "dbPath", "", "Database path")
+	flag.StringVar(&appPath, "appPath", "", "Application path")
 	flag.Parse()
+
+	if appPath == "" {
+		appPath, _ = os.Getwd()
+	}
+	dirs := strings.SplitAfter(appPath, "release-agent")
 
 	if devMode {
 		mode = model.Dev
@@ -47,8 +55,8 @@ func main() {
 		dbPath = appPath
 	} else {
 		mode = model.Prod
-		appPath = path.Join("etc", "tc-release-agent")
-		dbPath = path.Join("var", "lib", "tc-release-agent")
+		//appPath = path.Join("etc", "tc-release-agent")
+		//dbPath = path.Join("var", "lib", "tc-release-agent")
 	}
 
 	logger := cmn.NewLogger(string(mode))
@@ -86,15 +94,18 @@ func main() {
 	if err != nil {
 		logger.Panic().Err(err)
 	}
-	//
-	//ch := make(chan os.Signal)
-	//signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
 	newApp := cmn.NewApp(config, logger)
-	//newApp.Channel = ch
+	newApp.Channel = ch
 	newApp.Database = database
+	newApp.Mode = mode
 
 	newApi := api.NewApi(newApp)
-	logger.LogFatal(newApi.Router.Server.ListenAndServe(newApi.Router.Addr))
+	go newApi.Router.Server.ListenAndServe(newApi.Router.Addr)
+
+	<- newApp.Channel
 }
 

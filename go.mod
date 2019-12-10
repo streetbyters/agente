@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/ajg/form v1.5.1 // indirect
-	github.com/bamzi/jobrunner v1.0.0 // indirect
+	github.com/bamzi/jobrunner v1.0.0
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/fatih/structs v1.1.0 // indirect
