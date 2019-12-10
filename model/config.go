@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Abdulkadir DILSIZ
+// Copyright 2019 Abdulkadir DILSIZ <TransferChain>
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -22,6 +22,7 @@ package model
 type Config struct {
 	Path         	string	`json:"path"`
 	Mode         	MODE	`json:"mode"`
+	Port			int		`json:"port"`
 	DB           	DB		`json:"db"`
 	DBPath			string	`json:"db_path"`
 	DBName       	string	`json:"db_name"`

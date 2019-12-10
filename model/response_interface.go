@@ -15,18 +15,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model general application structures
 package model
 
-import "github.com/streadway/amqp"
-
-// RabbitMq Conn Structure
-type RabbitMq struct {
-	Conn		*amqp.Connection
-	Channel		*amqp.Channel
-}
-
-// Start RabbitMQ Conn
-func (r *RabbitMq) Start() {
-
+type Response interface {
+	ToJson()	string
 }
