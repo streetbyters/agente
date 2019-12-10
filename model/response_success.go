@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,20 +13,21 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package model
 
 import (
 	"encoding/json"
 )
 
+// ResponseSuccess rest api success response structure
 type ResponseSuccess struct {
 	ResponseInterface		`json:"-"`
 	Data 		interface{}	`json:"data"`
 	TotalCount	int64		`json:"total_count"`
 }
 
-func (r ResponseSuccess) ToJson() string {
+// ToJSON response structure to json string
+func (r ResponseSuccess) ToJSON() string {
 	body, err := json.Marshal(r)
 	if err != nil {
 		return ""

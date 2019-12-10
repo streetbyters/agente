@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,8 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Package model general application structures
 package model
 
 // DB enum type
@@ -44,9 +41,14 @@ const Prod MODE = "prod"
 type JobType string
 
 const (
+	// NewRelease job type
 	NewRelease		JobType = "new_release"
+	// Start job type
 	Start			JobType = "start"
+	// Restart job type
 	Restart			JobType = "restart"
+	// Shutdown job type
 	Shutdown		JobType = "shutdown"
+	// Other job type
 	Other			JobType	= "other"
 )

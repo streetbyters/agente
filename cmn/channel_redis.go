@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,8 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Package cmn provides in-app modules
 package cmn
 
 import (
@@ -25,7 +22,7 @@ import (
 	"strings"
 )
 
-// Redis Conn structure
+// ChannelRedis queuing structure
 type ChannelRedis struct {
 	ChannelInterface
 	App		*App
@@ -33,7 +30,7 @@ type ChannelRedis struct {
 	PubSub	*redis.PubSub
 }
 
-// New Redis
+// NewRedis building redis queuing
 func NewRedis(app *App) *ChannelRedis {
 	return &ChannelRedis{App: app}
 }
@@ -59,10 +56,12 @@ func (r *ChannelRedis) Start() {
 	r.App.Logger.LogInfo("Start Redis connection")
 }
 
+// Subscribe redis channel
 func (r *ChannelRedis) Subscribe() {
 	r.PubSub = r.Client.Subscribe(r.App.Config.ChannelName)
 }
 
+// Receive redis channel
 func (r *ChannelRedis) Receive() {
 	_, err := r.PubSub.Receive()
 	if err != nil {

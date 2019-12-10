@@ -14,7 +14,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package api
 
 import (
@@ -23,11 +22,13 @@ import (
 	"net/http"
 )
 
+// HomeController base controller
 type HomeController struct {
 	Controller
-	*Api
+	*API
 }
 
+// Index api base route
 func (c HomeController) Index(ctx *fasthttp.RequestCtx) {
 	c.JSONResponse(ctx, model.ResponseSuccess{
 		Data:	"Agente",

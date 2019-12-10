@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package api
 
 import (
@@ -33,32 +31,44 @@ import (
 	"testing"
 )
 
+// Suite application test structure
 type Suite struct {
 	suite.Suite
-	Api *Api
+	API *API
 }
 
+// Method request method for test api request
 type Method string
 const (
+	// Post method for api request
 	Post	Method = "POST"
+	// Get method for api request
 	Get		Method = "GET"
+	// Put method for api request
 	Put		Method = "PUT"
+	// Delete method for api request
 	Delete	Method = "DELETE"
 )
 
+// ContentType request content type for test api request
 type ContentType string
 const (
+	// JSON Content type for api request
 	JSON	ContentType = "application/json"
+	// XML Content type for api request
 	XML		ContentType = "application/xml"
+	// HTML Content type for api request
 	HTML	ContentType = "text/html"
 )
 
+// TestResponse response model for test api request
 type TestResponse struct {
 	Success model.ResponseSuccess
 	Error   model.ResponseError
 	Status  int
 }
 
+// NewSuite build test application
 func NewSuite() *Suite {
 	var mode model.MODE
 	var dbPath string
@@ -111,30 +121,36 @@ func NewSuite() *Suite {
 	newApp.Database = database
 	newApp.Mode = model.Test
 
-	newApi := NewApi(newApp)
+	newAPI := NewAPI(newApp)
 
-	return &Suite{Api: newApi}
+	return &Suite{API: newAPI}
 }
 
+// Run run test suites
 func Run(t *testing.T, s suite.TestingSuite) {
 	suite.Run(t, s)
 }
 
+// JSON api json request
 func (s *Suite) JSON(method Method, path string, arg ...interface{}) *TestResponse {
 	return s.request(false, "", JSON, method, path, arg...)
 }
 
+// XML api xml request
 func (s *Suite) XML(method Method, path string, arg ...interface{}) *TestResponse {
 	return s.request(false, "", XML, method, path, arg...)
 }
 
+// SetupSuite before suite processes
 func SetupSuite(s *Suite) {}
 
+// TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {}
 
+// request test request for api
 func (s *Suite) request(auth bool, authToken string, contentType ContentType, method Method, path string, body ...interface{}) *TestResponse {
 	req := fasthttp.AcquireRequest()
-	req.Header.SetHost(s.Api.Router.Addr)
+	req.Header.SetHost(s.API.Router.Addr)
 	req.Header.SetRequestURI(path)
 	req.Header.SetContentType(string(contentType) + "; charset=utf-8")
 	if auth {
@@ -160,7 +176,7 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 	}
 
 	resp := fasthttp.AcquireResponse()
-	err := s.serveApi(s.Api.Router.Handler.ServeFastHTTP, req, resp)
+	err := s.serveAPI(s.API.Router.Handler.ServeFastHTTP, req, resp)
 	if err != nil {
 		//fmt.Println(err)
 	}
@@ -184,7 +200,8 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 	return testResponse
 }
 
-func (s *Suite) serveApi(handler fasthttp.RequestHandler, req *fasthttp.Request, res *fasthttp.Response) error {
+// serveAPI
+func (s *Suite) serveAPI(handler fasthttp.RequestHandler, req *fasthttp.Request, res *fasthttp.Response) error {
 	ln := fasthttputil.NewInmemoryListener()
 	defer ln.Close()
 
