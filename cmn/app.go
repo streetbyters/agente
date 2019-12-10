@@ -31,6 +31,7 @@ type App struct {
 	RabbitMq	model.RabbitMq
 	Redis		model.Redis
 	Job			*Job
+	Mode		model.MODE
 }
 
 // NewApp application with config structure and logger package

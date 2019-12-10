@@ -21,5 +21,4 @@ vendor/
 .idea/
 
 # Development Database files
-releaseAgent.db
-releaseAgentTest.db
+*.db

@@ -21,6 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"github.com/akdilsiz/release-agent/model"
 	"github.com/akdilsiz/release-agent/model/response"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
@@ -116,9 +117,17 @@ func (r Router) logger(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		next(ctx)
 		defer func() {
-			r.Api.App.Logger.LogInfo("Path: " + string(ctx.Path()) +
-				" Method: " + string(ctx.Method()) +
-				" - " + strconv.Itoa(ctx.Response.StatusCode()))
+			if r.Api.App.Mode != model.Test {
+				if r.Api.App.Mode == model.Prod {
+					r.Api.App.Logger.LogInfo("Path: " + string(ctx.Path()) +
+						" Method: " + string(ctx.Method()) +
+						" - " + strconv.Itoa(ctx.Response.StatusCode()))
+				} else {
+					r.Api.App.Logger.LogDebug("Path: " + string(ctx.Path()) +
+						" Method: " + string(ctx.Method()) +
+						" - " + strconv.Itoa(ctx.Response.StatusCode()))
+				}
+			}
 		}()
 	}
 }

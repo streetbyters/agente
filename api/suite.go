@@ -20,7 +20,6 @@ package api
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"github.com/akdilsiz/release-agent/cmn"
 	"github.com/akdilsiz/release-agent/model"
 	"github.com/akdilsiz/release-agent/model/response"
@@ -56,16 +55,16 @@ const (
 )
 
 type TestResponse struct {
-	Result	model.Response
+	Success	response.Success
+	Error	response.Error
 	Status	int
-	Error	bool
 }
 
 func NewSuite() *Suite {
 	var mode model.MODE
 	var dbPath string
 
-	configFile := "release-agent.env"
+	configFile := "release-agent.test.env"
 	appPath, _ := os.Getwd()
 	dirs := strings.SplitAfter(appPath, "release-agent")
 
@@ -111,6 +110,8 @@ func NewSuite() *Suite {
 
 	newApp := cmn.NewApp(config, logger)
 	newApp.Database = database
+	newApp.Mode = model.Test
+
 	newApi := NewApi(newApp)
 
 	return &Suite{Api: newApi}
@@ -132,14 +133,10 @@ func SetupSuite(s *Suite) {}
 
 func TearDownSuite(s *Suite) {}
 
-func (s *Suite) request(auth bool,
-	authToken string,
-	contentType ContentType,
-	method Method,
-	path string,
-	body ...interface{}) *TestResponse {
+func (s *Suite) request(auth bool, authToken string, contentType ContentType, method Method, path string, body ...interface{}) *TestResponse {
 	req := fasthttp.AcquireRequest()
-	req.SetRequestURI(path)
+	req.Header.SetHost(s.Api.Router.Addr)
+	req.Header.SetRequestURI(path)
 	req.Header.SetContentType(string(contentType) + "; charset=utf-8")
 	if auth {
 		req.Header.Set("Authorization", "Bearer " + authToken)
@@ -166,26 +163,22 @@ func (s *Suite) request(auth bool,
 	resp := fasthttp.AcquireResponse()
 	err := s.serveApi(s.Api.Router.Handler.ServeFastHTTP, req, resp)
 	if err != nil {
-
+		//fmt.Println(err)
 	}
-	fmt.Print(string(resp.Body()))
+
 	testResponse := &TestResponse{}
 	if resp.StatusCode() >= 200 && resp.StatusCode() < 300 {
 		var ts1 response.Success
 		err = json.Unmarshal(resp.Body(), &ts1)
 		if err == nil {
-			testResponse.Result = ts1
+			testResponse.Success = ts1
 		}
-		testResponse.Error = false
 	} else if resp.StatusCode() >= 400 && resp.StatusCode() < 500 {
 		var ts2 response.Error
 		err = json.Unmarshal(resp.Body(), &ts2)
 		if err == nil {
-			testResponse.Result = ts2
+			testResponse.Error = ts2
 		}
-		testResponse.Error = true
-	} else {
-		testResponse.Error = true
 	}
 
 	testResponse.Status = resp.StatusCode()
