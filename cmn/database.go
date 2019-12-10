@@ -21,7 +21,7 @@ package cmn
 import (
 	"errors"
 	"fmt"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"

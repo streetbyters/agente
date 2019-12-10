@@ -1,4 +1,4 @@
-module github.com/akdilsiz/release-agent
+module github.com/akdilsiz/agente
 
 go 1.13
 

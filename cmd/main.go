@@ -20,9 +20,9 @@ package main
 import (
 	"errors"
 	"flag"
-	"github.com/akdilsiz/release-agent/api"
-	"github.com/akdilsiz/release-agent/cmn"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/api"
+	"github.com/akdilsiz/agente/cmn"
+	"github.com/akdilsiz/agente/model"
 	"github.com/spf13/viper"
 	"os"
 	"os/signal"
@@ -43,7 +43,7 @@ func main() {
 	var appPath string
 
 	flag.BoolVar(&devMode, "dev", false, "Development Mode")
-	flag.StringVar(&configFile, "config", "release-agent.dev.env", "Config file")
+	flag.StringVar(&configFile, "config", "agente.dev.env", "Config file")
 	flag.StringVar(&dbPath, "dbPath", "", "Database path")
 	flag.StringVar(&appPath, "appPath", "", "Application path")
 	flag.Parse()
@@ -51,7 +51,7 @@ func main() {
 	if appPath == "" {
 		appPath, _ = os.Getwd()
 	}
-	dirs := strings.SplitAfter(appPath, "release-agent")
+	dirs := strings.SplitAfter(appPath, "agente")
 
 	if devMode {
 		mode = model.Dev
@@ -59,8 +59,8 @@ func main() {
 		dbPath = appPath
 	} else {
 		mode = model.Prod
-		appPath = path.Join("etc", "tc-release-agent")
-		dbPath = path.Join("var", "lib", "tc-release-agent")
+		appPath = path.Join("etc", "tc-agente")
+		dbPath = path.Join("var", "lib", "tc-agente")
 	}
 
 	logger := cmn.NewLogger(string(mode))

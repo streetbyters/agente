@@ -20,8 +20,8 @@ package api
 import (
 	"encoding/json"
 	"encoding/xml"
-	"github.com/akdilsiz/release-agent/cmn"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/cmn"
+	"github.com/akdilsiz/agente/model"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -63,9 +63,9 @@ func NewSuite() *Suite {
 	var mode model.MODE
 	var dbPath string
 
-	configFile := "release-agent.test.env"
+	configFile := "agente.test.env"
 	appPath, _ := os.Getwd()
-	dirs := strings.SplitAfter(appPath, "release-agent")
+	dirs := strings.SplitAfter(appPath, "agente")
 
 	mode = model.Test
 	appPath = path.Join(dirs[0])

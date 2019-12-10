@@ -19,7 +19,7 @@
 package cmn
 
 import (
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 	"github.com/go-redis/redis/v7"
 	"strconv"
 	"strings"
