@@ -1,10 +1,10 @@
-# Release Agent
+# Agente
 
 ** This project on going work.
 
 ## LICENSE
 
-Copyright 2019 Abdulkadir DILSIZ
+Copyright 2019 Abdulkadir DILSIZ <TransferChain>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
