@@ -2,7 +2,6 @@ package cmn
 
 import (
 	"errors"
-	"fmt"
 	"github.com/akdilsiz/release-agent/model"
 	"go.etcd.io/bbolt"
 	"os"
@@ -147,7 +146,7 @@ func Test_NewDB(t *testing.T) {
 	logger.LogInfo("Failed mysql db connection if given invalid " +
 		"information")
 
-	// Failed mysql db connection if given invalid port
+	//Failed mysql db connection if given invalid port
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Mysql,
@@ -167,7 +166,7 @@ func Test_NewDB(t *testing.T) {
 	logger.LogInfo("Failed mysql db connection if given invalid " +
 		"port")
 
-	// Failed db connection if unsupported database type
+	//Failed db connection if unsupported database type
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Unknown,
@@ -286,5 +285,8 @@ func Test_InstallDB(t *testing.T) {
 	DropDB(database)
 
 	err = InstallDB(database)
-	fmt.Print(err)
+	if err != nil {
+		t.Fatal(err)
+	}
+	logger.LogInfo("InstallDB Successfully postgres. If no migration was made before.")
 }

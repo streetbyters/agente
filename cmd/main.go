@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Abdulkadir DILSIZ
+// Copyright 2019 Abdulkadir DILSIZ <TransferChain>
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -19,15 +19,13 @@ package main
 
 import (
 	"flag"
-	"github.com/akdilsiz/release-agent/app"
+	"github.com/akdilsiz/release-agent/api"
 	"github.com/akdilsiz/release-agent/cmn"
 	"github.com/akdilsiz/release-agent/model"
 	"github.com/spf13/viper"
 	"os"
-	"os/signal"
 	"path"
 	"strings"
-	"syscall"
 )
 
 var configFile string
@@ -64,6 +62,7 @@ func main() {
 
 	config := &model.Config{
 		Path:			appPath,
+		Port:			viper.GetInt("PORT"),
 		DB:				model.DB(viper.GetString("DB")),
 		DBPath:			dbPath,
 		DBName:			viper.GetString("DB_NAME"),
@@ -87,14 +86,15 @@ func main() {
 	if err != nil {
 		logger.Panic().Err(err)
 	}
+	//
+	//ch := make(chan os.Signal)
+	//signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
-	newApp := app.NewApp(config, logger)
-	newApp.Channel = ch
+	newApp := cmn.NewApp(config, logger)
+	//newApp.Channel = ch
 	newApp.Database = database
 
-	<- ch
+	newApi := api.NewApi(newApp)
+	logger.LogFatal(newApi.Router.Server.ListenAndServe(newApi.Router.Addr))
 }
 

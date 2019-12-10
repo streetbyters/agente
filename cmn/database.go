@@ -1,5 +1,5 @@
 //
-// Copyright 2019 Abdulkadir DILSIZ
+// Copyright 2019 Abdulkadir DILSIZ <TransferChain>
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -38,11 +38,20 @@ import (
 type Tables string
 
 // DB Table enums
-const tUser Tables = "ra_users"
-const tJob Tables = "ra_jobs"
-const tJobDetail Tables = "ra_job_details"
-const tJobLog Tables = "ra_job_logs"
-const tMigration Tables = "ra_migrations"
+const (
+	tUser Tables = "ra_users"
+	tJob Tables = "ra_jobs"
+	tJobDetail Tables = "ra_job_details"
+	tJobLog Tables = "ra_job_logs"
+	tMigration Tables = "ra_migrations"
+)
+
+// Error for database violation errors
+type Error int
+const (
+	TableNotFound Error = 1
+	OtherError Error = 0
+)
 
 // Database struct
 type Database struct {
@@ -52,6 +61,11 @@ type Database struct {
 	DB			*sqlx.DB
 	Tx			*sqlx.Tx
 	Error		error
+}
+
+// Tx for database queries
+type Tx struct {
+	DB		*Database
 }
 
 // Result structure for database query results
@@ -181,41 +195,44 @@ func InstallDB(database *Database) error {
 			return err
 		})
 		break
-	case model.Postgres, model.Mysql:
+	case model.Postgres:
 		result := database.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 		if result.Error != nil {
-			if dbError(database, result.Error) == 1 {
+			if dbError(database, result.Error) == TableNotFound {
+				result.Error = nil
 				files := migrationFiles(database, "up")
 				for _, f := range files {
-					database := database.BeginTx()
+					database := database.beginTx()
 					result := database.Query(f)
 					if result.Error != nil {
-						database.Rollback()
+						database.rollback()
 						break
 					}
-					database.Commit()
+					database.commit()
 				}
-				return nil
-			} else {
-				return result.Error
 			}
+
+			return result.Error
 		} else {
 			if len(result.Rows) > 0 {
 				//lastMigration := result.Rows[:len(result.Rows)]
 			} else {
 				files := migrationFiles(database, "up")
 				for _, f := range files {
-					database := database.BeginTx()
+					database := database.beginTx()
 					result = database.Query(f)
 					if result.Error != nil {
-						database.Rollback()
+						database.rollback()
 						break
 					}
-					database.Commit()
+					database.commit()
 				}
 				return nil
 			}
 		}
+		break
+	case model.Mysql:
+
 		break
 	default:
 		break
@@ -241,15 +258,15 @@ func migrationFiles(db *Database, typ string) map[int]string {
 	return sqls
 }
 
-func dbError(db *Database, err error) int {
+func dbError(db *Database, err error) Error {
 	switch db.Type {
 	case model.Postgres:
 		if pgerr, ok := err.(*pq.Error); ok {
 			switch string(pgerr.Code) {
 			case "42P01":
-				return 1
+				return TableNotFound
 			default:
-				return 0
+				return OtherError
 			}
 		}
 		break
@@ -261,18 +278,20 @@ func dbError(db *Database, err error) int {
 	return -1
 }
 
-func (d *Database) BeginTx() *Database {
+func (d *Database) beginTx() *Database {
 	if d.Tx == nil {
 		tx, err := d.DB.Beginx()
 		if err != nil {
 			d.Error = err
 		}
 		d.Tx = tx
+		return d
 	}
+	d.Error = nil
 	return d
 }
 
-func (d *Database) Rollback() *Database {
+func (d *Database) rollback() *Database {
 	if d.Tx != nil {
 		if err := d.Tx.Rollback(); err != nil {
 			d.Error = err
@@ -283,7 +302,7 @@ func (d *Database) Rollback() *Database {
 	return d
 }
 
-func (d *Database) Commit() *Database {
+func (d *Database) commit() *Database {
 	if d.Tx != nil {
 		if err := d.Tx.Commit(); err != nil {
 			d.Error = err
@@ -340,7 +359,7 @@ func (d *Database) QueryRow(query string, params ...interface{}) Result {
 		err = d.DB.QueryRowx(query, params...).Scan(&r)
 	}
 	if err != nil {
-		d.Rollback()
+		d.rollback()
 		result.Error = err
 	}
 	result.Rows[0] = r
@@ -348,29 +367,39 @@ func (d *Database) QueryRow(query string, params ...interface{}) Result {
 	return result
 }
 
+func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
+	d.beginTx()
+	newTx := new(Tx)
+	newTx.DB = d
+	if cb(newTx) != nil {
+		return d.rollback()
+	}
+	return d.commit()
+}
+
 // Select query builder by database type.
-func (d *Database) Select(table Tables, whereClause string) Result {
+func (t *Tx) Select(table Tables, whereClause string) Result {
 	result := Result{}
 
 	return result
 }
 
 // Insert query builder by database type
-func (d *Database) Insert(table Tables, data interface{}) Result {
+func (t *Tx) Insert(table Tables, data interface{}) Result {
 	result := Result{}
 
 	return result
 }
 
 // Update query builder by database type
-func (d *Database) Update(table Tables, whereClause string, data interface{}) Result {
+func (t *Tx) Update(table Tables, whereClause string, data interface{}) Result {
 	result := Result{}
 
 	return result
 }
 
 // Delete query build by database type
-func (d *Database) Delete(table Tables, whereClause string) Result {
+func (t *Tx) Delete(table Tables, whereClause string) Result {
 	result := Result{}
 
 	return result

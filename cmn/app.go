@@ -15,31 +15,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package app
+package cmn
 
 import (
-	"github.com/akdilsiz/release-agent/cmn"
 	"github.com/akdilsiz/release-agent/model"
 	"os"
 )
 
 // App structure
 type App struct {
-	Database	*cmn.Database
+	Database	*Database
 	Channel		chan os.Signal
 	Config		*model.Config
-	Logger 		*cmn.Logger
+	Logger 		*Logger
 	RabbitMq	model.RabbitMq
 	Redis		model.Redis
+	Job			*Job
 }
 
 // NewApp application with config structure and logger package
-func NewApp(config *model.Config, logger *cmn.Logger) *App {
+func NewApp(config *model.Config, logger *Logger) *App {
 	app := &App{
-		Config:   config,
-		RabbitMq: model.RabbitMq{},
-		Redis:    model.Redis{},
-		Logger: logger,
+		Config:		config,
+		RabbitMq:	model.RabbitMq{},
+		Redis:		model.Redis{},
+		Logger:		logger,
 	}
 
 	if app.Config.RabbitMqHost != "" {
@@ -47,6 +47,9 @@ func NewApp(config *model.Config, logger *cmn.Logger) *App {
 	} else if app.Config.RedisHost != "" {
 		app.Config.Redis = true
 	}
+
+	app.Job = NewJob(app)
+	app.Job.Start()
 
 	app.Logger.LogInfo("Started application")
 
