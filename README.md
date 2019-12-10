@@ -1,9 +1,9 @@
 # Agente
 Distributed simple and robust release management and system monitoring system.
 
-This project maintained @TransferChain
+This project maintained **@TransferChain**
 
-** This project on going work.
+***This project on going work.*
 
 ### Road map
  - [ ] Core system
