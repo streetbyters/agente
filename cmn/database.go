@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -15,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package cmn provides in-app modules
 package cmn
 
 import (
