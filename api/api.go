@@ -18,8 +18,8 @@
 package api
 
 import (
-	"github.com/akdilsiz/release-agent/cmn"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/cmn"
+	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
 )
 

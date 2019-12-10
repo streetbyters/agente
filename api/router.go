@@ -21,7 +21,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 	"net/http"

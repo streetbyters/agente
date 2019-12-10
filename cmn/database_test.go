@@ -2,7 +2,7 @@ package cmn
 
 import (
 	"errors"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 	"go.etcd.io/bbolt"
 	"os"
 	"path"
@@ -12,7 +12,7 @@ import (
 
 var logger = NewLogger("test")
 var appPath, _ = os.Getwd()
-var dirs = strings.SplitAfter(appPath, "release-agent")
+var dirs = strings.SplitAfter(appPath, "agente")
 
 func Test_NewDB(t *testing.T) {
 	appPath = dirs[0]
@@ -22,7 +22,7 @@ func Test_NewDB(t *testing.T) {
 		DBPath:		appPath,
 		Mode:		model.Test,
 		DB:			model.Bolt,
-		DBName:		"releaseAgent.db",
+		DBName:		"agente.db",
 	}
 
 	_, err := NewDB(config, logger)
@@ -37,7 +37,7 @@ func Test_NewDB(t *testing.T) {
 		DBPath:		"/root",
 		Mode:		model.Test,
 		DB:			model.Bolt,
-		DBName:		"releaseAgent.db",
+		DBName:		"agente.db",
 	}
 
 	_, err = NewDB(config, logger)
@@ -52,10 +52,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Postgres,
-		DBName:		"releaseagent",
+		DBName:		"agente",
 		DBHost:		"127.0.0.1",
 		DBPort:		5432,
-		DBUser:		"releaseagent",
+		DBUser:		"agente",
 		DBPass:		"123456",
 		DBSsl:		"disable",
 	}
@@ -71,10 +71,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Postgres,
-		DBName:		"releaseagent-error",
+		DBName:		"agente-error",
 		DBHost:		"127.0.0.1",
 		DBPort:		5432,
-		DBUser:		"releaseagent-error",
+		DBUser:		"agente-error",
 		DBPass:		"123456",
 		DBSsl:		"disable",
 	}
@@ -91,10 +91,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Postgres,
-		DBName:		"releaseagent",
+		DBName:		"agente",
 		DBHost:		"127.0.0.4",
 		DBPort:		5435,
-		DBUser:		"releaseagent",
+		DBUser:		"agente",
 		DBPass:		"123456",
 		DBSsl:		"disable",
 	}
@@ -111,10 +111,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Mysql,
-		DBName:		"releaseagent",
+		DBName:		"agente",
 		DBHost:		"127.0.0.1",
 		DBPort:		3306,
-		DBUser:		"releaseagent",
+		DBUser:		"agente",
 		DBPass:		"123456",
 		DBSsl:		"false",
 	}
@@ -130,10 +130,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Mysql,
-		DBName:		"releaseagent-error",
+		DBName:		"agente-error",
 		DBHost:		"127.0.0.1",
 		DBPort:		3306,
-		DBUser:		"releaseagent-error",
+		DBUser:		"agente-error",
 		DBPass:		"123456",
 		DBSsl:		"false",
 	}
@@ -150,10 +150,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Mysql,
-		DBName:		"releaseagent-error",
+		DBName:		"agente-error",
 		DBHost:		"127.0.0.1",
 		DBPort:		3303,
-		DBUser:		"releaseagent-error",
+		DBUser:		"agente-error",
 		DBPass:		"123456",
 		DBSsl:		"false",
 	}
@@ -170,10 +170,10 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:		model.Test,
 		DB:			model.Unknown,
-		DBName:		"releaseagent-error",
+		DBName:		"agente-error",
 		DBHost:		"127.0.0.1",
 		DBPort:		3303,
-		DBUser:		"releaseagent-error",
+		DBUser:		"agente-error",
 		DBPass:		"123456",
 		DBSsl:		"false",
 	}
@@ -194,7 +194,7 @@ func Test_InstallDB(t *testing.T) {
 		DBPath:		appPath,
 		Mode:		model.Test,
 		DB:			model.Bolt,
-		DBName:		"releaseAgent.db",
+		DBName:		"agenteTest.db",
 	}
 
 	database, err := NewDB(config, logger)
@@ -270,10 +270,10 @@ func Test_InstallDB(t *testing.T) {
 		DBPath:		path.Join(appPath, "sql"),
 		Mode:		model.Test,
 		DB:			model.Postgres,
-		DBName:		"releaseagent",
+		DBName:		"agente",
 		DBHost:		"127.0.0.1",
 		DBPort:		5432,
-		DBUser:		"releaseagent",
+		DBUser:		"agente",
 		DBPass:		"123456",
 		DBSsl:		"disable",
 	}

@@ -19,7 +19,7 @@
 package cmn
 
 import (
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 	"github.com/streadway/amqp"
 	"net/url"
 	"strconv"

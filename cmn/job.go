@@ -20,9 +20,10 @@ package cmn
 
 import (
 	"fmt"
-	"github.com/akdilsiz/release-agent/model"
+	"github.com/akdilsiz/agente/model"
 )
 
+// Job
 type Job struct {
 	App *App
 }
