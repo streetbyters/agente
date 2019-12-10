@@ -15,18 +15,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model general application structures
-package model
+// Package cmn provides in-app modules
+package cmn
 
-import "github.com/streadway/amqp"
+import (
+	"fmt"
+	"github.com/akdilsiz/release-agent/model"
+)
 
-// RabbitMq Conn Structure
-type RabbitMq struct {
-	Conn		*amqp.Connection
-	Channel		*amqp.Channel
+type Job struct {
+	App *App
 }
 
-// Start RabbitMQ Conn
-func (r *RabbitMq) Start() {
-
+func NewJob(app *App) *Job {
+	return &Job{App: app}
 }
+
+func (j Job) Run(message *model.ReceivedMessage) {
+	if message != nil {
+		fmt.Println(message)
+	}
+}
+

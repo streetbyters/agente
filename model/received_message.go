@@ -18,16 +18,30 @@
 // Package model general application structures
 package model
 
-import (
-	"github.com/go-redis/redis"
+import "encoding/json"
+
+// Message Type received message type
+type MessageType string
+
+const (
+	NewRelease		MessageType = "new_release"
+	Start			MessageType = "start"
+	Restart			MessageType = "restart"
+	Shutdown		MessageType = "shutdown"
 )
 
-// Redis Conn structure
-type Redis struct {
-	Client	*redis.Client
+type ReceivedMessage struct {
+	JobName			string		`json:"job_name"`
+	Type			MessageType	`json:"type"`
 }
 
-// Start Redis Conn
-func (r *Redis) Start() {
-
+func NewReceivedMessage(str ...string) *ReceivedMessage {
+	if len(str) > 0 {
+		receivedMessage := &ReceivedMessage{}
+		if err := json.Unmarshal([]byte(str[0]), &receivedMessage); err != nil {
+			return nil
+		}
+		return receivedMessage
+	}
+	return nil
 }

@@ -70,6 +70,7 @@ func NewRouter(api *Api) *Router {
 	r := phi.NewRouter()
 
 	r.Use(router.requestID)
+	r.Use(router.recover)
 	r.Use(router.logger)
 	r.Use(router.cors)
 
@@ -102,12 +103,30 @@ func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
 	}, http.StatusMethodNotAllowed)
 }
 
+// Reference: https://github.com/go-chi/chi/blob/master/middleware/request_id.go
 func (r Router) requestID(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		id := atomic.AddUint64(&reqID, 1)
 		requestID := fmt.Sprintf("%s-%06d", prefix, id)
 		ctx.SetUserValue("requestID", requestID)
 		ctx.Response.Header.Add("x-request-id", requestID)
+		next(ctx)
+	}
+}
+
+// Reference: https://github.com/go-chi/chi/blob/master/middleware/recoverer.go
+func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
+	return func(ctx *fasthttp.RequestCtx) {
+		defer func() {
+			if rvr := recover(); rvr != nil {
+				r.Api.JSONResponse(ctx, model.ResponseError{
+					Errors:            nil,
+					Detail:            http.StatusText(http.StatusInternalServerError),
+				}, http.StatusInternalServerError)
+				return
+			}
+		}()
+
 		next(ctx)
 	}
 }
@@ -147,5 +166,3 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 		}
 	}
 }
-
-//func (r *Router)

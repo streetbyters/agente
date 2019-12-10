@@ -98,7 +98,7 @@ func NewSuite() *Suite {
 		RedisHost:		viper.GetString("REDIS_HOST"),
 		RedisPort:		viper.GetInt("REDIS_PORT"),
 		RedisPass:		viper.GetString("REDIS_PASS"),
-		RedisDB:		viper.GetString("REDIS_DB"),
+		RedisDB:		viper.GetInt("REDIS_DB"),
 		Versioning:		viper.GetBool("VERSIONING"),
 	}
 

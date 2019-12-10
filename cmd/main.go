@@ -35,6 +35,9 @@ var configFile string
 var devMode bool
 
 func main() {
+	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+
 	var mode model.MODE
 	var dbPath string
 	var appPath string
@@ -87,25 +90,29 @@ func main() {
 		RedisHost:		viper.GetString("REDIS_HOST"),
 		RedisPort:		viper.GetInt("REDIS_PORT"),
 		RedisPass:		viper.GetString("REDIS_PASS"),
-		RedisDB:		viper.GetString("REDIS_DB"),
+		RedisDB:		viper.GetInt("REDIS_DB"),
 		ChannelName:	viper.GetString("CHANNEL_NAME"),
 		Versioning:		viper.GetBool("VERSIONING"),
 		Scheduler:		viper.GetString("SCHEDULER"),
 	}
 
 	if config.DB == "" {
-		panic(errors.New("DB env is nil"))
+		panic(errors.New("enter DB conf"))
 	}
 	if config.Port == 0 {
-		panic(errors.New("PORT env is nil"))
+		panic(errors.New("enter PORT conf"))
 	}
 
 	if config.ChannelName == "" {
-		panic(errors.New("CHANNEL_NAME env is nil"))
+		panic(errors.New("enter CHANNEL_NAME conf"))
 	}
 
 	if config.RedisHost == "" && config.RabbitMqHost == "" {
-		panic(errors.New(""))
+		panic(errors.New("enter one of the redis or rabbitMQ configurations"))
+	}
+
+	if config.RedisHost != "" && config.RabbitMqHost != "" {
+		panic(errors.New("you can only work on one queue(redis or rabbitMQ) system"))
 	}
 
 	database, err := cmn.NewDB(config, logger)
@@ -113,16 +120,17 @@ func main() {
 		logger.Panic().Err(err)
 	}
 
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-
 	newApp := cmn.NewApp(config, logger)
 	newApp.Channel = ch
 	newApp.Database = database
 	newApp.Mode = mode
 
 	newApi := api.NewApi(newApp)
-	go newApi.Router.Server.ListenAndServe(newApi.Router.Addr)
+	go func() {
+		if err := newApi.Router.Server.ListenAndServe(newApi.Router.Addr); err != nil {
+			panic(err)
+		}
+	}()
 
 	<- newApp.Channel
 }

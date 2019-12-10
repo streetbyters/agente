@@ -15,6 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmn provides in-app modules
 package cmn
 
 import (
@@ -24,30 +25,41 @@ import (
 
 // App structure
 type App struct {
-	Database	*Database
-	Channel		chan os.Signal
-	Config		*model.Config
-	Logger 		*Logger
-	RabbitMq	model.RabbitMq
-	Redis		model.Redis
-	Scheduler	*Scheduler
-	Mode		model.MODE
+	Database  			*Database
+	Channel   			chan os.Signal
+	Config    			*model.Config
+	Logger    			*Logger
+	ChannelRabbitMq  	*ChannelRabbitMq
+	ChannelRedis     	*ChannelRedis
+	Scheduler			*Scheduler
+	Mode      			model.MODE
+	Job					*Job
 }
 
 // NewApp application with config structure and logger package
 func NewApp(config *model.Config, logger *Logger) *App {
 	app := &App{
-		Config:		config,
-		RabbitMq:	model.RabbitMq{},
-		Redis:		model.Redis{},
-		Logger:		logger,
+		Config:   config,
+		Logger:   logger,
 	}
 
 	if app.Config.RabbitMqHost != "" {
 		app.Config.RabbitMq = true
-	} else if app.Config.RedisHost != "" {
-		app.Config.Redis = true
+		app.ChannelRabbitMq = NewRabbitMq(app)
+		app.ChannelRabbitMq.Start()
+		app.ChannelRabbitMq.Subscribe()
+		go app.ChannelRabbitMq.Receive()
 	}
+
+	if app.Config.RedisHost != "" {
+		app.Config.Redis = true
+		app.ChannelRedis = NewRedis(app)
+		app.ChannelRedis.Start()
+		app.ChannelRedis.Subscribe()
+		go app.ChannelRedis.Receive()
+	}
+
+	app.Job = NewJob(app)
 
 	app.Scheduler = NewScheduler(app)
 	app.Scheduler.Package.Start()
