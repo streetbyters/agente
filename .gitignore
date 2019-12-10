@@ -22,3 +22,4 @@ vendor/
 
 # Development Database files
 releaseAgent.db
+releaseAgentTest.db
