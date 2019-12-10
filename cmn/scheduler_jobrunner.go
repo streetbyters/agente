@@ -15,23 +15,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package response
+package cmn
 
-import (
-	"encoding/json"
-	"github.com/akdilsiz/release-agent/model"
-)
+import "github.com/bamzi/jobrunner"
 
-type Success struct {
-	model.Response			`json:"-"`
-	Data 		interface{}	`json:"data"`
-	TotalCount	int64		`json:"total_count"`
+type SchedulerJobRunner struct {
+	SchedulerInterface		`json:"-"`
+	*Scheduler
 }
 
-func (r Success) ToJson() string {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	}
-	return string(body)
+func (s SchedulerJobRunner) Start() {
+	jobrunner.Start()
+}
+
+func (s SchedulerJobRunner) List() {
+
+}
+
+func (s SchedulerJobRunner) Add() {
+
+}
+
+func (s SchedulerJobRunner) Update(id int64) {
+
+}
+
+func (s SchedulerJobRunner) Delete(id int64) {
+
+}
+
+func (s SchedulerJobRunner) Run() {
+
+}
+
+func (s SchedulerJobRunner) Stop() {
+	jobrunner.Stop()
 }

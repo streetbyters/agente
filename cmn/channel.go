@@ -15,28 +15,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+// Package cmn provides in-app modules
+package cmn
 
-import (
-	"github.com/akdilsiz/release-agent/cmn"
-	"github.com/akdilsiz/release-agent/model"
-	"github.com/valyala/fasthttp"
-)
-
-type Api struct {
-	App 	*cmn.App
-	Router	*Router
-}
-
-func NewApi(app *cmn.App) *Api {
-	api := &Api{App: app}
-	api.Router = NewRouter(api)
-
-	return api
-}
-
-func (a *Api) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
-	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJson()))
-	ctx.SetStatusCode(status)
+type ChannelInterface interface {
+	Start()
+	Subscribe()
+	Receive()
 }

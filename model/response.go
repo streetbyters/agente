@@ -17,6 +17,6 @@
 
 package model
 
-type Response interface {
+type ResponseInterface interface {
 	ToJson()	string
 }

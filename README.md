@@ -1,6 +1,20 @@
 # Agente
+Distributed simple and robust release management and system monitoring system.
+
+This project maintained @TransferChain
 
 ** This project on going work.
+
+### Road map
+ - [ ] Core system
+ - [ ] First worker agent
+ - [ ] Jenkins vs CI tool extensions
+ - [ ] Management dashboard
+ - [ ] First master agent
+ - [ ] All relevant third-party system integrations (version control, CI, database, queuing etc.)
+
+## Contribution
+I would like to accept any contributions to make Agente better and feature rich. So feel free to contribute your features(i.e. more 3rd-party(version control, CI, database, queuing etc.) tools), improvements and fixes.
 
 ## LICENSE
 

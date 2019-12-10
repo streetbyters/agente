@@ -15,23 +15,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package response
+// Package model general application structures
+package model
 
-import (
-	"encoding/json"
-	"github.com/akdilsiz/release-agent/model"
+import "encoding/json"
+
+// Message Type received message type
+type MessageType string
+
+const (
+	NewRelease		MessageType = "new_release"
+	Start			MessageType = "start"
+	Restart			MessageType = "restart"
+	Shutdown		MessageType = "shutdown"
 )
 
-type Error struct {
-	model.Response			`json:"-"`
-	Errors		interface{}		`json:"errors"`
-	Detail		string			`json:"detail"`
+type ReceivedMessage struct {
+	JobName			string		`json:"job_name"`
+	Type			MessageType	`json:"type"`
 }
 
-func (r Error) ToJson() string {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return ""
+func NewReceivedMessage(str ...string) *ReceivedMessage {
+	if len(str) > 0 {
+		receivedMessage := &ReceivedMessage{}
+		if err := json.Unmarshal([]byte(str[0]), &receivedMessage); err != nil {
+			return nil
+		}
+		return receivedMessage
 	}
-	return string(body)
+	return nil
 }

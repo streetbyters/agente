@@ -5,11 +5,13 @@ go 1.13
 require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/bamzi/jobrunner v1.0.0
+	github.com/cyucelen/marker v0.0.0-20191104160756-7ce950124633 // indirect
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gavv/httpexpect v2.0.0+incompatible // indirect
-	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/go-redis/redis v6.15.6+incompatible // indirect
+	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/httptest v1.4.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
@@ -25,7 +27,7 @@ require (
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.4.0
 	github.com/valyala/fasthttp v1.6.0
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/yalp/jsonpath v0.0.0-20180802001716-5cc68e5049a0 // indirect

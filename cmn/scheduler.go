@@ -15,28 +15,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package cmn
 
 import (
-	"github.com/akdilsiz/release-agent/cmn"
-	"github.com/akdilsiz/release-agent/model"
-	"github.com/valyala/fasthttp"
+	"errors"
 )
 
-type Api struct {
-	App 	*cmn.App
-	Router	*Router
+type Scheduler struct {
+	App *App
+	Package SchedulerInterface
 }
 
-func NewApi(app *cmn.App) *Api {
-	api := &Api{App: app}
-	api.Router = NewRouter(api)
-
-	return api
+type SchedulerInterface interface {
+	Start()
+	List()
+	Add()
+	Update(id int64)
+	Delete(id int64)
+	Run()
+	Stop()
 }
 
-func (a *Api) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
-	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJson()))
-	ctx.SetStatusCode(status)
+func NewScheduler(app *App) *Scheduler {
+	s := &Scheduler{App: app}
+
+	switch app.Config.Scheduler {
+	case "JobRunner":
+		s.Package = &SchedulerJobRunner{Scheduler: s}
+		break
+	default:
+		panic(errors.New("unknown scheduler type"))
+	}
+
+	return s
 }

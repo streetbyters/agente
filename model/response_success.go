@@ -15,18 +15,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model general application structures
 package model
 
-import "github.com/streadway/amqp"
+import (
+	"encoding/json"
+)
 
-// RabbitMq Conn Structure
-type RabbitMq struct {
-	Conn		*amqp.Connection
-	Channel		*amqp.Channel
+type ResponseSuccess struct {
+	ResponseInterface		`json:"-"`
+	Data 		interface{}	`json:"data"`
+	TotalCount	int64		`json:"total_count"`
 }
 
-// Start RabbitMQ Conn
-func (r *RabbitMq) Start() {
-
+func (r ResponseSuccess) ToJson() string {
+	body, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(body)
 }

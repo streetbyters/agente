@@ -15,19 +15,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model general application structures
 package model
 
 import (
-	"github.com/go-redis/redis"
+	"encoding/json"
 )
 
-// Redis Conn structure
-type Redis struct {
-	Client	*redis.Client
+type ResponseError struct {
+	ResponseInterface			`json:"-"`
+	Errors		interface{}		`json:"errors"`
+	Detail		string			`json:"detail"`
 }
 
-// Start Redis Conn
-func (r *Redis) Start() {
-
+func (r ResponseError) ToJson() string {
+	body, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(body)
 }

@@ -15,9 +15,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package cmn provides in-app modules
 package cmn
 
-import "github.com/bamzi/jobrunner"
+import (
+	"fmt"
+	"github.com/akdilsiz/release-agent/model"
+)
 
 type Job struct {
 	App *App
@@ -27,26 +31,9 @@ func NewJob(app *App) *Job {
 	return &Job{App: app}
 }
 
-func (j Job) Start() {
-	jobrunner.Start()
+func (j Job) Run(message *model.ReceivedMessage) {
+	if message != nil {
+		fmt.Println(message)
+	}
 }
 
-func (j Job) List() {
-
-}
-
-func (j Job) Add() {
-
-}
-
-func (j Job) Update(id int64) {
-
-}
-
-func (j Job) Delete(id int64) {
-
-}
-
-func (j Job) Run() {
-
-}
