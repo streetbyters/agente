@@ -15,19 +15,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package model general application structures
-package model
+package cmn
 
-import (
-	"github.com/go-redis/redis"
-)
-
-// Redis Conn structure
-type Redis struct {
-	Client	*redis.Client
+type Job struct {
+	App *App
 }
 
-// Start Redis Conn
-func (r *Redis) Start() {
+func NewJob(app *App) *Job {
+	return &Job{App: app}
+}
+
+
+func (j Job) Start() {
+
+}
+
+func (j Job) Add() {
+
+}
+
+func (j Job) Update(id int64) {
+
+}
+
+func (j Job) Delete(id int64) {
+
+}
+
+func (j Job) Run() {
 
 }
