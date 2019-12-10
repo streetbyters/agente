@@ -13,9 +13,19 @@ This project currently maintained by **@TransferChain**
  - [ ] First master agent
  - [ ] All relevant third-party system integrations (version control, CI, database, queuing etc.)
 
-## Contribution
-I would like to accept any contributions to make Agente better and feature rich. So feel free to contribute your features(i.e. more 3rd-party(version control, CI, database, queuing etc.) tools), improvements and fixes.
+## Requirements
+ - Go > 1.9
+ - Redis or RabbitMQ
 
+## Development
+```shell script
+go mod vendor
+go run ./cmd -dev
+```
+
+## Contribution
+I would like to accept any contributions to make Agente better and feature rich. So feel free to contribute your features(i.e. more 3rd-party(version control, CI, database, queuing etc.) tools), improvements and fixes.\
+[See detail](docs/contribution.md)
 ## LICENSE
 
 Copyright 2019 Abdulkadir DILSIZ - TransferChain
