@@ -1,7 +1,7 @@
 # Agente
 Distributed simple and robust release management and system monitoring system.
 
-This project maintained **@TransferChain**
+This project currently maintained by **@TransferChain**
 
 ***This project on going work.*
 
