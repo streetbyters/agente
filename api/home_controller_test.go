@@ -15,7 +15,7 @@ func (s *HomeControllerTest) Test_GetHome() {
 	s.Equal(resp.Status, 200)
 	s.Equal(resp.Success.Data, "Agente")
 
-	s.Api.App.Logger.LogInfo("Success get home")
+	s.API.App.Logger.LogInfo("Success get home")
 }
 
 func Test_HomeController(t *testing.T) {

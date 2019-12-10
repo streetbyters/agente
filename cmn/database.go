@@ -49,7 +49,9 @@ const (
 // Error for database violation errors
 type Error int
 const (
+	// TableNotFound sql violation code
 	TableNotFound Error = 1
+	// OtherError unhandled sql violation codes
 	OtherError Error = 0
 )
 
@@ -63,7 +65,7 @@ type Database struct {
 	Error		error
 }
 
-// Tx for database queries
+// Tx transaction for database queries
 type Tx struct {
 	DB		*Database
 }
@@ -75,7 +77,7 @@ type Result struct {
 	Error	error
 }
 
-// NewDB Database connection with config struct and logger package
+// NewDB building database
 func NewDB(config *model.Config, logger *Logger) (*Database, error) {
 	database := &Database{}
 	database.Config = config
@@ -196,43 +198,10 @@ func InstallDB(database *Database) error {
 		})
 		break
 	case model.Postgres:
-		result := database.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
-		if result.Error != nil {
-			if dbError(database, result.Error) == TableNotFound {
-				result.Error = nil
-				files := migrationFiles(database, "up")
-				for _, f := range files {
-					database := database.beginTx()
-					result := database.Query(f)
-					if result.Error != nil {
-						database.rollback()
-						break
-					}
-					database.commit()
-				}
-			}
-
-			return result.Error
-		} else {
-			if len(result.Rows) > 0 {
-				//lastMigration := result.Rows[:len(result.Rows)]
-			} else {
-				files := migrationFiles(database, "up")
-				for _, f := range files {
-					database := database.beginTx()
-					result = database.Query(f)
-					if result.Error != nil {
-						database.rollback()
-						break
-					}
-					database.commit()
-				}
-				return nil
-			}
-		}
+		err = migrationUp(database)
 		break
 	case model.Mysql:
-
+		err = migrationUp(database)
 		break
 	default:
 		break
@@ -256,6 +225,44 @@ func migrationFiles(db *Database, typ string) map[int]string {
 		}
 	}
 	return sqls
+}
+
+func migrationUp(db *Database) error {
+	result := db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
+	if result.Error != nil {
+		if dbError(db, result.Error) == TableNotFound {
+			result.Error = nil
+			files := migrationFiles(db, "up")
+			for _, f := range files {
+				database := db.beginTx()
+				result := database.Query(f)
+				if result.Error != nil {
+					database.rollback()
+					break
+				}
+				database.commit()
+			}
+		}
+
+		return result.Error
+	}
+
+	if len(result.Rows) > 0 {
+		//lastMigration := result.Rows[:len(result.Rows)]
+		return result.Error
+	}
+
+	files := migrationFiles(db, "up")
+	for _, f := range files {
+		database := db.beginTx()
+		result = database.Query(f)
+		if result.Error != nil {
+			database.rollback()
+			break
+		}
+		database.commit()
+	}
+	return result.Error
 }
 
 func dbError(db *Database, err error) Error {
@@ -314,7 +321,7 @@ func (d *Database) commit() *Database {
 	return d
 }
 
-// Query Raw query builder. Returns multiple records
+// Query database query builder
 func (d *Database) Query(query string, params ...interface{}) Result {
 	result := Result{}
 
@@ -342,7 +349,7 @@ func (d *Database) Query(query string, params ...interface{}) Result {
 	return result
 }
 
-// QueryRow Raw query builder. Returns one record.
+// QueryRow database row query builder
 func (d *Database) QueryRow(query string, params ...interface{}) Result {
 	result := Result{}
 
@@ -367,6 +374,7 @@ func (d *Database) QueryRow(query string, params ...interface{}) Result {
 	return result
 }
 
+// Transaction database tx builder
 func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
 	d.beginTx()
 	newTx := new(Tx)

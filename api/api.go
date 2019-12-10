@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package api
 
 import (
@@ -23,20 +21,23 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type Api struct {
+// API rest api structure
+type API struct {
 	App 	*cmn.App
 	Router	*Router
 }
 
-func NewApi(app *cmn.App) *Api {
-	api := &Api{App: app}
+// NewAPI building api
+func NewAPI(app *cmn.App) *API {
+	api := &API{App: app}
 	api.Router = NewRouter(api)
 
 	return api
 }
 
-func (a *Api) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
+// JSONResponse building json response
+func (a *API) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
 	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJson()))
+	ctx.SetBody([]byte(response.ToJSON()))
 	ctx.SetStatusCode(status)
 }

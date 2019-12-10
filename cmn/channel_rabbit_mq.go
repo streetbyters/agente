@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,8 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-// Package cmn provides in-app modules
 package cmn
 
 import (
@@ -25,7 +22,7 @@ import (
 	"strconv"
 )
 
-// RabbitMq Conn Structure
+// ChannelRabbitMq queuing structure
 type ChannelRabbitMq struct {
 	ChannelInterface
 	App 		*App
@@ -33,7 +30,7 @@ type ChannelRabbitMq struct {
 	Channel		*amqp.Channel
 }
 
-// NewRabbitMq
+// NewRabbitMq building rabbitMQ queuing
 func NewRabbitMq(app *App) *ChannelRabbitMq {
 	return &ChannelRabbitMq{App: app}
 }
@@ -53,6 +50,7 @@ func (r *ChannelRabbitMq) Start() {
 	r.App.Logger.LogInfo("Start RabbitMQ Connection")
 }
 
+// Subscribe rabbitMQ channel
 func (r *ChannelRabbitMq) Subscribe() {
 	channel, err := r.Conn.Channel()
 	if err != nil {
@@ -75,6 +73,7 @@ func (r *ChannelRabbitMq) Subscribe() {
 	}
 }
 
+// Receive consume rabbitMQ channel
 func (r *ChannelRabbitMq) Receive() {
 	q, err := r.Channel.QueueDeclare(
 		"",    // name

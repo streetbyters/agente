@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package main
 
 import (
@@ -31,7 +29,9 @@ import (
 	"syscall"
 )
 
+// configFile App config file name string
 var configFile string
+// devMode Development mode flag
 var devMode bool
 
 func main() {
@@ -125,9 +125,9 @@ func main() {
 	newApp.Database = database
 	newApp.Mode = mode
 
-	newApi := api.NewApi(newApp)
+	newAPI := api.NewAPI(newApp)
 	go func() {
-		if err := newApi.Router.Server.ListenAndServe(newApi.Router.Addr); err != nil {
+		if err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr); err != nil {
 			panic(err)
 		}
 	}()

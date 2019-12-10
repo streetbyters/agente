@@ -19,35 +19,43 @@ package cmn
 
 import "github.com/bamzi/jobrunner"
 
+// SchedulerJobRunner jobrunner package adapter
 type SchedulerJobRunner struct {
 	SchedulerInterface		`json:"-"`
 	*Scheduler
 }
 
+// Start jobrunner
 func (s SchedulerJobRunner) Start() {
 	jobrunner.Start()
 }
 
+// List jobrunner jobs
 func (s SchedulerJobRunner) List() {
 
 }
 
+// Add jobrunner job
 func (s SchedulerJobRunner) Add() {
 
 }
 
+// Update jobrunner job
 func (s SchedulerJobRunner) Update(id int64) {
 
 }
 
+// Delete jobrunner job
 func (s SchedulerJobRunner) Delete(id int64) {
 
 }
 
+// Run jobrunner job
 func (s SchedulerJobRunner) Run() {
 
 }
 
+// Stop jobrunner
 func (s SchedulerJobRunner) Stop() {
 	jobrunner.Stop()
 }

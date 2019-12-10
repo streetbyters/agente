@@ -14,11 +14,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package api
 
 import "github.com/valyala/fasthttp"
 
+// Controller rest api interface
 type Controller interface {
 	Index(ctx *fasthttp.RequestCtx)
 	Show(ctx *fasthttp.RequestCtx)

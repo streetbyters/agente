@@ -1,4 +1,3 @@
-//
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -14,7 +13,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 package api
 
 import (
@@ -32,8 +30,9 @@ import (
 	"time"
 )
 
+// Router api router structure
 type Router struct {
-	Api 		*Api
+	API 		*API
 	Server		*fasthttp.Server
 	Addr		string
 	Handler		*phi.Mux
@@ -48,9 +47,10 @@ var (
 	allowCredentials = "true"
 )
 
-func NewRouter(api *Api) *Router {
+// NewRouter building api router
+func NewRouter(api *API) *Router {
 	router := &Router{
-		Api: api,
+		API: api,
 	}
 
 	hostname, err := os.Hostname()
@@ -77,7 +77,7 @@ func NewRouter(api *Api) *Router {
 	r.NotFound(router.notFound)
 	r.MethodNotAllowed(router.methodNotAllowed)
 
-	r.Get("/", HomeController{Api: api}.Index)
+	r.Get("/", HomeController{API: api}.Index)
 
 	router.Server = &fasthttp.Server{
 		Handler: 		r.ServeFastHTTP,
@@ -90,14 +90,14 @@ func NewRouter(api *Api) *Router {
 }
 
 func (r Router) notFound(ctx *fasthttp.RequestCtx) {
-	r.Api.JSONResponse(ctx, model.ResponseError{
+	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors:   nil,
 		Detail:   "not found",
 	}, http.StatusNotFound)
 }
 
 func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
-	r.Api.JSONResponse(ctx, model.ResponseError{
+	r.API.JSONResponse(ctx, model.ResponseError{
 		Errors:   nil,
 		Detail:   "method not allowed",
 	}, http.StatusMethodNotAllowed)
@@ -119,7 +119,7 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
-				r.Api.JSONResponse(ctx, model.ResponseError{
+				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors:            nil,
 					Detail:            http.StatusText(http.StatusInternalServerError),
 				}, http.StatusInternalServerError)
@@ -135,13 +135,13 @@ func (r Router) logger(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		next(ctx)
 		defer func() {
-			if r.Api.App.Mode != model.Test {
-				if r.Api.App.Mode == model.Prod {
-					r.Api.App.Logger.LogInfo("Path: " + string(ctx.Path()) +
+			if r.API.App.Mode != model.Test {
+				if r.API.App.Mode == model.Prod {
+					r.API.App.Logger.LogInfo("Path: " + string(ctx.Path()) +
 						" Method: " + string(ctx.Method()) +
 						" - " + strconv.Itoa(ctx.Response.StatusCode()))
 				} else {
-					r.Api.App.Logger.LogDebug("Path: " + string(ctx.Path()) +
+					r.API.App.Logger.LogDebug("Path: " + string(ctx.Path()) +
 						" Method: " + string(ctx.Method()) +
 						" - " + strconv.Itoa(ctx.Response.StatusCode()))
 				}
@@ -161,8 +161,7 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 
 			ctx.SetStatusCode(http.StatusNoContent)
 			return
-		} else {
-			next(ctx)
 		}
+		next(ctx)
 	}
 }
