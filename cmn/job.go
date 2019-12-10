@@ -23,6 +23,7 @@ import (
 	"github.com/akdilsiz/release-agent/model"
 )
 
+// Job
 type Job struct {
 	App *App
 }

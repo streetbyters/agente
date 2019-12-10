@@ -18,21 +18,13 @@
 // Package model general application structures
 package model
 
-import "encoding/json"
-
-// Message Type received message type
-type MessageType string
-
-const (
-	NewRelease		MessageType = "new_release"
-	Start			MessageType = "start"
-	Restart			MessageType = "restart"
-	Shutdown		MessageType = "shutdown"
+import (
+	"encoding/json"
 )
 
 type ReceivedMessage struct {
 	JobName			string		`json:"job_name"`
-	Type			MessageType	`json:"type"`
+	Type			JobType		`json:"type"`
 }
 
 func NewReceivedMessage(str ...string) *ReceivedMessage {

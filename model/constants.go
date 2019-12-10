@@ -40,3 +40,13 @@ const Test MODE = "test"
 // Prod Production model enum
 const Prod MODE = "prod"
 
+// JobType received message type
+type JobType string
+
+const (
+	NewRelease		JobType = "new_release"
+	Start			JobType = "start"
+	Restart			JobType = "restart"
+	Shutdown		JobType = "shutdown"
+	Other			JobType	= "other"
+)
