@@ -19,34 +19,35 @@ package cmn
 
 import "github.com/bamzi/jobrunner"
 
-type Job struct {
-	App *App
+type SchedulerJobRunner struct {
+	SchedulerInterface		`json:"-"`
+	*Scheduler
 }
 
-func NewJob(app *App) *Job {
-	return &Job{App: app}
-}
-
-func (j Job) Start() {
+func (s SchedulerJobRunner) Start() {
 	jobrunner.Start()
 }
 
-func (j Job) List() {
+func (s SchedulerJobRunner) List() {
 
 }
 
-func (j Job) Add() {
+func (s SchedulerJobRunner) Add() {
 
 }
 
-func (j Job) Update(id int64) {
+func (s SchedulerJobRunner) Update(id int64) {
 
 }
 
-func (j Job) Delete(id int64) {
+func (s SchedulerJobRunner) Delete(id int64) {
 
 }
 
-func (j Job) Run() {
+func (s SchedulerJobRunner) Run() {
 
+}
+
+func (s SchedulerJobRunner) Stop() {
+	jobrunner.Stop()
 }

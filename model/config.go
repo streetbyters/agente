@@ -41,6 +41,7 @@ type Config struct {
 	RedisPort		int		`json:"redis_port"`
 	RedisPass		string	`json:"redis_pass"`
 	RedisDB			string	`json:"redis_db"`
-	ChannelName		string	`json:"CHANNEL_NAME"`
-	Versioning		bool	`json:"VERSIONING"`
+	ChannelName		string	`json:"channel_name"`
+	Versioning		bool	`json:"versioning"`
+	Scheduler		string	`json:"scheduler"`
 }

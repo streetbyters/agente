@@ -30,7 +30,7 @@ type App struct {
 	Logger 		*Logger
 	RabbitMq	model.RabbitMq
 	Redis		model.Redis
-	Job			*Job
+	Scheduler	*Scheduler
 	Mode		model.MODE
 }
 
@@ -49,8 +49,8 @@ func NewApp(config *model.Config, logger *Logger) *App {
 		app.Config.Redis = true
 	}
 
-	app.Job = NewJob(app)
-	app.Job.Start()
+	app.Scheduler = NewScheduler(app)
+	app.Scheduler.Package.Start()
 
 	app.Logger.LogInfo("Started application")
 

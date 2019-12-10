@@ -15,20 +15,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package response
+package model
 
 import (
 	"encoding/json"
-	"github.com/akdilsiz/release-agent/model"
 )
 
-type Success struct {
-	model.Response			`json:"-"`
+type ResponseSuccess struct {
+	ResponseInterface		`json:"-"`
 	Data 		interface{}	`json:"data"`
 	TotalCount	int64		`json:"total_count"`
 }
 
-func (r Success) ToJson() string {
+func (r ResponseSuccess) ToJson() string {
 	body, err := json.Marshal(r)
 	if err != nil {
 		return ""

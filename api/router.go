@@ -22,7 +22,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/akdilsiz/release-agent/model"
-	"github.com/akdilsiz/release-agent/model/response"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 	"net/http"
@@ -90,14 +89,14 @@ func NewRouter(api *Api) *Router {
 }
 
 func (r Router) notFound(ctx *fasthttp.RequestCtx) {
-	r.Api.JSONResponse(ctx, response.Error{
+	r.Api.JSONResponse(ctx, model.ResponseError{
 		Errors:   nil,
 		Detail:   "not found",
 	}, http.StatusNotFound)
 }
 
 func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
-	r.Api.JSONResponse(ctx, response.Error{
+	r.Api.JSONResponse(ctx, model.ResponseError{
 		Errors:   nil,
 		Detail:   "method not allowed",
 	}, http.StatusMethodNotAllowed)

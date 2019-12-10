@@ -15,20 +15,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package response
+package model
 
 import (
 	"encoding/json"
-	"github.com/akdilsiz/release-agent/model"
 )
 
-type Error struct {
-	model.Response			`json:"-"`
+type ResponseError struct {
+	ResponseInterface			`json:"-"`
 	Errors		interface{}		`json:"errors"`
 	Detail		string			`json:"detail"`
 }
 
-func (r Error) ToJson() string {
+func (r ResponseError) ToJson() string {
 	body, err := json.Marshal(r)
 	if err != nil {
 		return ""

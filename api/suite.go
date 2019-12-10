@@ -22,7 +22,6 @@ import (
 	"encoding/xml"
 	"github.com/akdilsiz/release-agent/cmn"
 	"github.com/akdilsiz/release-agent/model"
-	"github.com/akdilsiz/release-agent/model/response"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -55,9 +54,9 @@ const (
 )
 
 type TestResponse struct {
-	Success	response.Success
-	Error	response.Error
-	Status	int
+	Success model.ResponseSuccess
+	Error   model.ResponseError
+	Status  int
 }
 
 func NewSuite() *Suite {
@@ -168,13 +167,13 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 
 	testResponse := &TestResponse{}
 	if resp.StatusCode() >= 200 && resp.StatusCode() < 300 {
-		var ts1 response.Success
+		var ts1 model.ResponseSuccess
 		err = json.Unmarshal(resp.Body(), &ts1)
 		if err == nil {
 			testResponse.Success = ts1
 		}
 	} else if resp.StatusCode() >= 400 && resp.StatusCode() < 500 {
-		var ts2 response.Error
+		var ts2 model.ResponseError
 		err = json.Unmarshal(resp.Body(), &ts2)
 		if err == nil {
 			testResponse.Error = ts2

@@ -18,7 +18,7 @@
 package api
 
 import (
-	"github.com/akdilsiz/release-agent/model/response"
+	"github.com/akdilsiz/release-agent/model"
 	"github.com/valyala/fasthttp"
 	"net/http"
 )
@@ -29,7 +29,7 @@ type HomeController struct {
 }
 
 func (c HomeController) Index(ctx *fasthttp.RequestCtx) {
-	c.JSONResponse(ctx, response.Success{
+	c.JSONResponse(ctx, model.ResponseSuccess{
 		Data:	"Agente",
 	}, http.StatusOK)
 }

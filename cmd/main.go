@@ -18,6 +18,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"github.com/akdilsiz/release-agent/api"
 	"github.com/akdilsiz/release-agent/cmn"
@@ -55,8 +56,8 @@ func main() {
 		dbPath = appPath
 	} else {
 		mode = model.Prod
-		//appPath = path.Join("etc", "tc-release-agent")
-		//dbPath = path.Join("var", "lib", "tc-release-agent")
+		appPath = path.Join("etc", "tc-release-agent")
+		dbPath = path.Join("var", "lib", "tc-release-agent")
 	}
 
 	logger := cmn.NewLogger(string(mode))
@@ -65,7 +66,7 @@ func main() {
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
 	if err != nil {
-		logger.Panic().Err(err)
+		panic(err)
 	}
 
 	config := &model.Config{
@@ -87,7 +88,24 @@ func main() {
 		RedisPort:		viper.GetInt("REDIS_PORT"),
 		RedisPass:		viper.GetString("REDIS_PASS"),
 		RedisDB:		viper.GetString("REDIS_DB"),
+		ChannelName:	viper.GetString("CHANNEL_NAME"),
 		Versioning:		viper.GetBool("VERSIONING"),
+		Scheduler:		viper.GetString("SCHEDULER"),
+	}
+
+	if config.DB == "" {
+		panic(errors.New("DB env is nil"))
+	}
+	if config.Port == 0 {
+		panic(errors.New("PORT env is nil"))
+	}
+
+	if config.ChannelName == "" {
+		panic(errors.New("CHANNEL_NAME env is nil"))
+	}
+
+	if config.RedisHost == "" && config.RabbitMqHost == "" {
+		panic(errors.New(""))
 	}
 
 	database, err := cmn.NewDB(config, logger)
