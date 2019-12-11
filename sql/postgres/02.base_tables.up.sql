@@ -11,10 +11,6 @@ CREATE TABLE IF NOT EXISTS ra_users (
 CREATE UNIQUE INDEX IF NOT EXISTS ra_users_username_unique_index ON ra_users USING btree (username);
 CREATE UNIQUE INDEX IF NOT EXISTS ra_users_email_unique_index ON ra_users USING btree (email);
 
-CREATE TRIGGER ts_ra_users before INSERT or UPDATE ON ra_users
-    FOR EACH ROW EXECUTE FUNCTION timestamps_gen();
-
-
 CREATE TYPE job AS ENUM ('new_release', 'start', 'restart', 'shutdown', 'other');
 
 CREATE TABLE IF NOT EXISTS ra_jobs (

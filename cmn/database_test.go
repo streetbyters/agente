@@ -1,9 +1,7 @@
 package cmn
 
 import (
-	"errors"
 	"github.com/akdilsiz/agente/model"
-	"go.etcd.io/bbolt"
 	"os"
 	"path"
 	"strings"
@@ -17,12 +15,12 @@ var dirs = strings.SplitAfter(appPath, "agente")
 func Test_NewDB(t *testing.T) {
 	appPath = dirs[0]
 
-	// Open bolt db connection
+	// Open sqlite connection
 	config := &model.Config{
 		DBPath: appPath,
 		Mode:   model.Test,
-		DB:     model.Bolt,
-		DBName: "agente.db",
+		DB:     model.SQLite,
+		DBName: "agenteTest.db",
 	}
 
 	_, err := NewDB(config, logger)
@@ -30,14 +28,14 @@ func Test_NewDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	logger.LogInfo("Success open bolt db connection")
+	logger.LogInfo("Success open sqlite connection")
 
-	// Failed bolt db connection if file permission error
+	// Failed sqlite connection if file permission error
 	config = &model.Config{
 		DBPath: "/root",
 		Mode:   model.Test,
-		DB:     model.Bolt,
-		DBName: "agente.db",
+		DB:     model.SQLite,
+		DBName: "agenteTest.db",
 	}
 
 	_, err = NewDB(config, logger)
@@ -45,7 +43,7 @@ func Test_NewDB(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	logger.LogInfo("Failed bolt db connection if file permission " +
+	logger.LogInfo("Failed sqlite connection if file permission " +
 		"error")
 
 	// Open postgres db connection
@@ -189,11 +187,11 @@ func Test_NewDB(t *testing.T) {
 func Test_InstallDB(t *testing.T) {
 	appPath = dirs[0]
 
-	// Open bolt db connection
+	// Open sqlite connection
 	config := &model.Config{
 		DBPath: appPath,
 		Mode:   model.Test,
-		DB:     model.Bolt,
+		DB:     model.SQLite,
 		DBName: "agenteTest.db",
 	}
 
@@ -207,63 +205,7 @@ func Test_InstallDB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	logger.LogInfo("Success install bolt db")
-
-	DropDB(database)
-
-	database.Bolt.Update(func(tx *bbolt.Tx) error {
-		tx.CreateBucket([]byte(tUser))
-
-		return nil
-	})
-
-	err = InstallDB(database)
-	if err == nil {
-		t.Fatal(errors.New("error is not nil"))
-	}
-	logger.LogInfo("InstallDB return error is user bucket already exists")
-
-	DropDB(database)
-
-	database.Bolt.Update(func(tx *bbolt.Tx) error {
-		tx.CreateBucket([]byte(tJob))
-
-		return nil
-	})
-
-	err = InstallDB(database)
-	if err == nil {
-		t.Fatal(errors.New("error is not nil"))
-	}
-	logger.LogInfo("InstallDB return error is job bucket already exists")
-
-	DropDB(database)
-
-	database.Bolt.Update(func(tx *bbolt.Tx) error {
-		tx.CreateBucket([]byte(tJobDetail))
-
-		return nil
-	})
-
-	err = InstallDB(database)
-	if err == nil {
-		t.Fatal(errors.New("error is not nil"))
-	}
-	logger.LogInfo("InstallDB return error is job detail bucket already exists")
-
-	DropDB(database)
-
-	database.Bolt.Update(func(tx *bbolt.Tx) error {
-		tx.CreateBucket([]byte(tJobLog))
-
-		return nil
-	})
-
-	err = InstallDB(database)
-	if err == nil {
-		t.Fatal(errors.New("error is not nil"))
-	}
-	logger.LogInfo("InstallDB return error is job log bucket already exists")
+	logger.LogInfo("Success install sqlite. If no migration was made before.")
 
 	// Install postgres db
 	config = &model.Config{

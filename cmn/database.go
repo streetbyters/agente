@@ -17,6 +17,7 @@
 package cmn
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/akdilsiz/agente/model"
@@ -24,9 +25,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
-	bolt "go.etcd.io/bbolt"
+	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3" // SQLite Driver
 	"io/ioutil"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -52,13 +53,15 @@ const (
 	TableNotFound Error = 1
 	// OtherError unhandled sql violation codes
 	OtherError Error = 0
+
+	// SQLite Error
+	InternalError Error = 1
 )
 
 // Database struct
 type Database struct {
 	Config *model.Config
 	Type   model.DB
-	Bolt   *bolt.DB
 	DB     *sqlx.DB
 	Tx     *sqlx.Tx
 	Error  error
@@ -82,13 +85,22 @@ func NewDB(config *model.Config, logger *Logger) (*Database, error) {
 	database.Config = config
 
 	switch config.DB {
-	case model.Bolt:
-		db, err := bolt.Open(path.Join(config.DBPath, config.DBName), 0666, nil)
-		if err != nil {
+	case model.SQLite:
+		connURL := fmt.Sprintf("file:%s?cache=shared&mode=rwc",
+			filepath.Join(config.DBPath, config.DBName))
+
+		var db *sqlx.DB
+		var db2 *sql.DB
+
+		db2, _ = sql.Open("sqlite3", connURL)
+		db = sqlx.NewDb(db2, "sqlite3")
+
+		if err := db.Ping(); err != nil {
 			return nil, err
 		}
-		database.Type = model.Bolt
-		database.Bolt = db
+
+		database.Type = model.SQLite
+		database.DB = db
 		break
 	case model.Postgres:
 		connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
@@ -143,17 +155,7 @@ func NewDB(config *model.Config, logger *Logger) (*Database, error) {
 func DropDB(database *Database) error {
 	var err error
 	switch database.Type {
-	case model.Bolt:
-		database.Bolt.Update(func(tx *bolt.Tx) error {
-			tx.DeleteBucket([]byte(tMigration))
-			tx.DeleteBucket([]byte(tUser))
-			tx.DeleteBucket([]byte(tJob))
-			tx.DeleteBucket([]byte(tJobDetail))
-			tx.DeleteBucket([]byte(tJobLog))
-			return nil
-		})
-		break
-	case model.Postgres, model.Mysql:
+	case model.SQLite, model.Postgres, model.Mysql:
 		files := migrationFiles(database, "down")
 		for _, f := range files {
 			result := database.Query(f)
@@ -169,40 +171,8 @@ func DropDB(database *Database) error {
 func InstallDB(database *Database) error {
 	var err error
 	switch database.Type {
-	case model.Bolt:
-		err = database.Bolt.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte(tMigration))
-			if b == nil {
-				_, err := tx.CreateBucket([]byte(tUser))
-
-				if err != nil {
-					return err
-				}
-				_, err = tx.CreateBucket([]byte(tJob))
-				if err != nil {
-					return err
-				}
-				_, err = tx.CreateBucket([]byte(tJobDetail))
-				if err != nil {
-					return err
-				}
-				_, err = tx.CreateBucket([]byte(tJobLog))
-				if err != nil {
-					return err
-				}
-			}
-
-			_, err = tx.CreateBucket([]byte(tMigration))
-			return err
-		})
-		break
-	case model.Postgres:
+	case model.SQLite, model.Postgres, model.Mysql:
 		err = migrationUp(database)
-		break
-	case model.Mysql:
-		err = migrationUp(database)
-		break
-	default:
 		break
 	}
 
@@ -229,7 +199,7 @@ func migrationFiles(db *Database, typ string) map[int]string {
 func migrationUp(db *Database) error {
 	result := db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 	if result.Error != nil {
-		if dbError(db, result.Error) == TableNotFound {
+		if  int(dbError(db, result.Error)) == int(TableNotFound) {
 			result.Error = nil
 			files := migrationFiles(db, "up")
 			for _, f := range files {
@@ -279,6 +249,14 @@ func dbError(db *Database, err error) Error {
 	case model.Mysql:
 
 		break
+	case model.SQLite:
+		if SQLiteErr, ok := err.(sqlite3.Error); ok {
+			switch SQLiteErr.Code.Error() {
+			case "SQL logic error":
+				return InternalError
+			}
+		}
+		break
 	}
 
 	return -1
@@ -324,10 +302,6 @@ func (d *Database) commit() *Database {
 func (d *Database) Query(query string, params ...interface{}) Result {
 	result := Result{}
 
-	if d.Type == model.Bolt {
-		result.Error = errors.New("this method not supported")
-		return result
-	}
 	var rows *sqlx.Rows
 	var err error
 	if d.Tx != nil {
@@ -351,11 +325,6 @@ func (d *Database) Query(query string, params ...interface{}) Result {
 // QueryRow database row query builder
 func (d *Database) QueryRow(query string, params ...interface{}) Result {
 	result := Result{}
-
-	if d.Type == model.Bolt {
-		result.Error = errors.New("this method not supported")
-		return result
-	}
 
 	var r interface{}
 	var err error

@@ -19,8 +19,8 @@ package model
 // DB enum type
 type DB string
 
-// Bolt DB Enum
-const Bolt DB = "bolt"
+// SQLite DB Enum
+const SQLite DB = "sqlite"
 
 // Postgres Enum
 const Postgres DB = "postgres"
