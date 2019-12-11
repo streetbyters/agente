@@ -1,4 +1,7 @@
-# Agente
+ <h1 align="center">Agente</h1>
+ <p align="center">
+  <img height="150" src="assets/agente.png"/>
+ </p>
  <p align="center">
    <a href="https://github.com/akdilsiz/agente/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
