@@ -108,6 +108,10 @@ func (r *ChannelRabbitMq) Receive() {
 		nil,
 	)
 
+	if err != nil {
+		r.App.Logger.LogError(err, "rabbitMQ error channel queue consume")
+	}
+
 	go func() {
 		for receive := range received {
 			r.App.Logger.LogInfo("Receive rabbitmq message: " + string(receive.Body))
