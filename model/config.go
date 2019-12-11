@@ -22,7 +22,7 @@ type Config struct {
 	Mode         MODE   `json:"mode"`
 	Port         int    `json:"port"`
 	DB           DB     `json:"db"`
-	DBPat        string `json:"db_path"`
+	DBPath       string `json:"db_path"`
 	DBName       string `json:"db_name"`
 	DBHost       string `json:"db_host"`
 	DBPort       int    `json:"db_port"`
