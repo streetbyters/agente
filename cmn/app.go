@@ -23,22 +23,22 @@ import (
 
 // App structure
 type App struct {
-	Database  			*Database
-	Channel   			chan os.Signal
-	Config    			*model.Config
-	Logger    			*Logger
-	ChannelRabbitMq  	*ChannelRabbitMq
-	ChannelRedis     	*ChannelRedis
-	Scheduler			*Scheduler
-	Mode      			model.MODE
-	Job					*Job
+	Database        *Database
+	Channel         chan os.Signal
+	Config          *model.Config
+	Logger          *Logger
+	ChannelRabbitMq *ChannelRabbitMq
+	ChannelRedis    *ChannelRedis
+	Scheduler       *Scheduler
+	Mode            model.MODE
+	Job             *Job
 }
 
 // NewApp building new app
 func NewApp(config *model.Config, logger *Logger) *App {
 	app := &App{
-		Config:   config,
-		Logger:   logger,
+		Config: config,
+		Logger: logger,
 	}
 
 	if app.Config.RabbitMqHost != "" {

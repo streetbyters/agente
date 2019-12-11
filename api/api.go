@@ -24,8 +24,8 @@ import (
 
 // API rest api structure
 type API struct {
-	App 	*cmn.App
-	Router	*Router
+	App    *cmn.App
+	Router *Router
 }
 
 // NewAPI building api

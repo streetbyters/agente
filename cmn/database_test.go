@@ -19,10 +19,10 @@ func Test_NewDB(t *testing.T) {
 
 	// Open bolt db connection
 	config := &model.Config{
-		DBPath:		appPath,
-		Mode:		model.Test,
-		DB:			model.Bolt,
-		DBName:		"agente.db",
+		DBPath: appPath,
+		Mode:   model.Test,
+		DB:     model.Bolt,
+		DBName: "agente.db",
 	}
 
 	_, err := NewDB(config, logger)
@@ -34,10 +34,10 @@ func Test_NewDB(t *testing.T) {
 
 	// Failed bolt db connection if file permission error
 	config = &model.Config{
-		DBPath:		"/root",
-		Mode:		model.Test,
-		DB:			model.Bolt,
-		DBName:		"agente.db",
+		DBPath: "/root",
+		Mode:   model.Test,
+		DB:     model.Bolt,
+		DBName: "agente.db",
 	}
 
 	_, err = NewDB(config, logger)
@@ -50,14 +50,14 @@ func Test_NewDB(t *testing.T) {
 
 	// Open postgres db connection
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Postgres,
-		DBName:		"agente",
-		DBHost:		"127.0.0.1",
-		DBPort:		5432,
-		DBUser:		"agente",
-		DBPass:		"123456",
-		DBSsl:		"disable",
+		Mode:   model.Test,
+		DB:     model.Postgres,
+		DBName: "agente",
+		DBHost: "127.0.0.1",
+		DBPort: 5432,
+		DBUser: "agente",
+		DBPass: "123456",
+		DBSsl:  "disable",
 	}
 
 	_, err = NewDB(config, logger)
@@ -69,14 +69,14 @@ func Test_NewDB(t *testing.T) {
 
 	// Failed postgres db connection if given invalid information
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Postgres,
-		DBName:		"agente-error",
-		DBHost:		"127.0.0.1",
-		DBPort:		5432,
-		DBUser:		"agente-error",
-		DBPass:		"123456",
-		DBSsl:		"disable",
+		Mode:   model.Test,
+		DB:     model.Postgres,
+		DBName: "agente-error",
+		DBHost: "127.0.0.1",
+		DBPort: 5432,
+		DBUser: "agente-error",
+		DBPass: "123456",
+		DBSsl:  "disable",
 	}
 
 	_, err = NewDB(config, logger)
@@ -89,14 +89,14 @@ func Test_NewDB(t *testing.T) {
 
 	// Failed postgres db connection if given invalid port
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Postgres,
-		DBName:		"agente",
-		DBHost:		"127.0.0.4",
-		DBPort:		5435,
-		DBUser:		"agente",
-		DBPass:		"123456",
-		DBSsl:		"disable",
+		Mode:   model.Test,
+		DB:     model.Postgres,
+		DBName: "agente",
+		DBHost: "127.0.0.4",
+		DBPort: 5435,
+		DBUser: "agente",
+		DBPass: "123456",
+		DBSsl:  "disable",
 	}
 
 	_, err = NewDB(config, logger)
@@ -109,14 +109,14 @@ func Test_NewDB(t *testing.T) {
 
 	// Open mysql db connection
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Mysql,
-		DBName:		"agente",
-		DBHost:		"127.0.0.1",
-		DBPort:		3306,
-		DBUser:		"agente",
-		DBPass:		"123456",
-		DBSsl:		"false",
+		Mode:   model.Test,
+		DB:     model.Mysql,
+		DBName: "agente",
+		DBHost: "127.0.0.1",
+		DBPort: 3306,
+		DBUser: "agente",
+		DBPass: "123456",
+		DBSsl:  "false",
 	}
 
 	_, err = NewDB(config, logger)
@@ -128,14 +128,14 @@ func Test_NewDB(t *testing.T) {
 
 	// Failed mysql db connection if given invalid information
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Mysql,
-		DBName:		"agente-error",
-		DBHost:		"127.0.0.1",
-		DBPort:		3306,
-		DBUser:		"agente-error",
-		DBPass:		"123456",
-		DBSsl:		"false",
+		Mode:   model.Test,
+		DB:     model.Mysql,
+		DBName: "agente-error",
+		DBHost: "127.0.0.1",
+		DBPort: 3306,
+		DBUser: "agente-error",
+		DBPass: "123456",
+		DBSsl:  "false",
 	}
 
 	_, err = NewDB(config, logger)
@@ -148,14 +148,14 @@ func Test_NewDB(t *testing.T) {
 
 	//Failed mysql db connection if given invalid port
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Mysql,
-		DBName:		"agente-error",
-		DBHost:		"127.0.0.1",
-		DBPort:		3303,
-		DBUser:		"agente-error",
-		DBPass:		"123456",
-		DBSsl:		"false",
+		Mode:   model.Test,
+		DB:     model.Mysql,
+		DBName: "agente-error",
+		DBHost: "127.0.0.1",
+		DBPort: 3303,
+		DBUser: "agente-error",
+		DBPass: "123456",
+		DBSsl:  "false",
 	}
 
 	_, err = NewDB(config, logger)
@@ -168,14 +168,14 @@ func Test_NewDB(t *testing.T) {
 
 	//Failed db connection if unsupported database type
 	config = &model.Config{
-		Mode:		model.Test,
-		DB:			model.Unknown,
-		DBName:		"agente-error",
-		DBHost:		"127.0.0.1",
-		DBPort:		3303,
-		DBUser:		"agente-error",
-		DBPass:		"123456",
-		DBSsl:		"false",
+		Mode:   model.Test,
+		DB:     model.Unknown,
+		DBName: "agente-error",
+		DBHost: "127.0.0.1",
+		DBPort: 3303,
+		DBUser: "agente-error",
+		DBPass: "123456",
+		DBSsl:  "false",
 	}
 
 	_, err = NewDB(config, logger)
@@ -191,10 +191,10 @@ func Test_InstallDB(t *testing.T) {
 
 	// Open bolt db connection
 	config := &model.Config{
-		DBPath:		appPath,
-		Mode:		model.Test,
-		DB:			model.Bolt,
-		DBName:		"agenteTest.db",
+		DBPath: appPath,
+		Mode:   model.Test,
+		DB:     model.Bolt,
+		DBName: "agenteTest.db",
 	}
 
 	database, err := NewDB(config, logger)
@@ -267,15 +267,15 @@ func Test_InstallDB(t *testing.T) {
 
 	// Install postgres db
 	config = &model.Config{
-		DBPath:		path.Join(appPath, "sql"),
-		Mode:		model.Test,
-		DB:			model.Postgres,
-		DBName:		"agente",
-		DBHost:		"127.0.0.1",
-		DBPort:		5432,
-		DBUser:		"agente",
-		DBPass:		"123456",
-		DBSsl:		"disable",
+		DBPath: path.Join(appPath, "sql"),
+		Mode:   model.Test,
+		DB:     model.Postgres,
+		DBName: "agente",
+		DBHost: "127.0.0.1",
+		DBPort: 5432,
+		DBUser: "agente",
+		DBPass: "123456",
+		DBSsl:  "disable",
 	}
 
 	database, err = NewDB(config, logger)

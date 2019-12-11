@@ -22,9 +22,9 @@ import (
 
 // ResponseSuccess rest api success response structure
 type ResponseSuccess struct {
-	ResponseInterface		`json:"-"`
-	Data 		interface{}	`json:"data"`
-	TotalCount	int64		`json:"total_count"`
+	ResponseInterface `json:"-"`
+	Data              interface{} `json:"data"`
+	TotalCount        int64       `json:"total_count"`
 }
 
 // ToJSON response structure to json string

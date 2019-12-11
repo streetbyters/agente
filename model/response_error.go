@@ -22,9 +22,9 @@ import (
 
 // ResponseError rest api error response structure
 type ResponseError struct {
-	ResponseInterface			`json:"-"`
-	Errors		interface{}		`json:"errors"`
-	Detail		string			`json:"detail"`
+	ResponseInterface `json:"-"`
+	Errors            interface{} `json:"errors"`
+	Detail            string      `json:"detail"`
 }
 
 // ToJSON response structure to json string

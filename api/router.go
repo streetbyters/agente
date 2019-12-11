@@ -33,15 +33,15 @@ import (
 
 // Router api router structure
 type Router struct {
-	API 		*API
-	Server		*fasthttp.Server
-	Addr		string
-	Handler		*phi.Mux
+	API     *API
+	Server  *fasthttp.Server
+	Addr    string
+	Handler *phi.Mux
 }
 
 var (
-	prefix string
-	reqID uint64
+	prefix           string
+	reqID            uint64
 	allowHeaders     = "authorization"
 	allowMethods     = "HEAD,GET,POST,PUT,DELETE,OPTIONS"
 	allowOrigin      = "*"
@@ -81,8 +81,8 @@ func NewRouter(api *API) *Router {
 	r.Get("/", HomeController{API: api}.Index)
 
 	router.Server = &fasthttp.Server{
-		Handler: 		r.ServeFastHTTP,
-		ReadTimeout:	10 * time.Second,
+		Handler:     r.ServeFastHTTP,
+		ReadTimeout: 10 * time.Second,
 	}
 	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
 	router.Handler = r
@@ -92,15 +92,15 @@ func NewRouter(api *API) *Router {
 
 func (r Router) notFound(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
-		Errors:   nil,
-		Detail:   "not found",
+		Errors: nil,
+		Detail: "not found",
 	}, http.StatusNotFound)
 }
 
 func (r Router) methodNotAllowed(ctx *fasthttp.RequestCtx) {
 	r.API.JSONResponse(ctx, model.ResponseError{
-		Errors:   nil,
-		Detail:   "method not allowed",
+		Errors: nil,
+		Detail: "method not allowed",
 	}, http.StatusMethodNotAllowed)
 }
 
@@ -121,8 +121,8 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 		defer func() {
 			if rvr := recover(); rvr != nil {
 				r.API.JSONResponse(ctx, model.ResponseError{
-					Errors:            nil,
-					Detail:            http.StatusText(http.StatusInternalServerError),
+					Errors: nil,
+					Detail: http.StatusText(http.StatusInternalServerError),
 				}, http.StatusInternalServerError)
 				return
 			}

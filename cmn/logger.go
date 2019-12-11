@@ -80,4 +80,3 @@ func (l *Logger) LogInfo(msg string) {
 func (l *Logger) LogDebug(msg string) {
 	l.Debug().Msg(msg)
 }
-

@@ -18,5 +18,5 @@ package model
 
 // ResponseInterface rest api response interface
 type ResponseInterface interface {
-	ToJSON()	string
+	ToJSON() string
 }

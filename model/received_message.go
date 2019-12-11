@@ -22,8 +22,8 @@ import (
 
 // ReceivedMessage queuing messasge payload
 type ReceivedMessage struct {
-	JobName			string		`json:"job_name"`
-	Type			JobType		`json:"type"`
+	JobName string  `json:"job_name"`
+	Type    JobType `json:"type"`
 }
 
 // NewReceivedMessage building queuing message
