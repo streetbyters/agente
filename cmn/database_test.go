@@ -2,8 +2,9 @@ package cmn
 
 import (
 	"github.com/akdilsiz/agente/model"
+	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -199,7 +200,7 @@ func Test_InstallDB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	DropDB(database)
+	err = DropDB(database)
 
 	err = InstallDB(database)
 	if err != nil {
@@ -209,7 +210,32 @@ func Test_InstallDB(t *testing.T) {
 
 	// Install postgres db
 	config = &model.Config{
-		DBPath: path.Join(appPath, "sql"),
+		DBPath: appPath,
+		Mode:   model.Test,
+		DB:     model.Postgres,
+		DBName: "agente_test",
+		DBHost: "127.0.0.1",
+		DBPort: 5432,
+		DBUser: "agente",
+		DBPass: "123456",
+		DBSsl:  "disable",
+	}
+
+	database, err = NewDB(config, logger)
+	if err != nil {
+		t.Fatal(err)
+	}
+	DropDB(database)
+
+	err = InstallDB(database)
+	if err != nil {
+		t.Fatal(err)
+	}
+	logger.LogInfo("InstallDB Successfully postgres. If no migration was made before.")
+
+	// New migration up for postgres db
+	config = &model.Config{
+		DBPath: appPath,
 		Mode:   model.Test,
 		DB:     model.Postgres,
 		DBName: "agente",
@@ -230,5 +256,29 @@ func Test_InstallDB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	logger.LogInfo("InstallDB Successfully postgres. If no migration was made before.")
+	logger.LogInfo("New migration up for postgres db")
+
+	data, err := ioutil.ReadFile(filepath.Join(config.DBPath, "sql", "postgres", "02.base_tables.down.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res := database.Query(string(data))
+	if res.Error != nil {
+		t.Fatal(err)
+	}
+
+	res = database.Query("delete from " + string(tMigration) + " where id > 0")
+
+	err = InstallDB(database)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	result := database.Query("select * from " + string(tMigration))
+	if result.Error != nil {
+		t.Fatal(err)
+	}
+
+	logger.LogInfo("Successfully new migrations")
 }

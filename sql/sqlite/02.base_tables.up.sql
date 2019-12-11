@@ -4,8 +4,8 @@ CREATE TABLE IF NOT EXISTS ra_users (
     password text not null,
     email text not null,
     is_active numeric default 1,
-    inserted_at DATETIME DEFAULT datetime('now', 'utc'),
-    updated_at DATETIME DEFAULT datetime('now', 'utc')
+    inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS ra_users_username_unique_index ON ra_users(username);
@@ -14,7 +14,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS ra_users_email_unique_index ON ra_users(email)
 CREATE TABLE IF NOT EXISTS ra_jobs (
     id integer primary key autoincrement,
     source_user_id integer null,
-    inserted_at DATETIME DEFAULT datetime('now', 'utc'),
+    inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
 );
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS ra_job_details (
     script_file text null,
     script text null,
 
-    inserted_at DATETIME DEFAULT datetime('now', 'utc'),
+    inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (job_id) REFERENCES ra_jobs(id) ON UPDATE cascade  ON DELETE cascade,
     FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS ra_job_logs(
   job_id integer not null,
   data text null,
   state numeric default 0,
-  inserted_at DATETIME DEFAULT datetime('now', 'utc'),
+  inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
   FOREIGN KEY (job_id) REFERENCES ra_jobs(id) ON UPDATE cascade ON DELETE CASCADE
 );
