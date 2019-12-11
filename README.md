@@ -1,7 +1,13 @@
 # Agente
- [![License](https://img.shields.io/github/license/akdilsiz/agente)](https://opensource.org/licenses/Apache-2.0)
- \
- \
+ <p align="center">
+   <a href="https://github.com/akdilsiz/agente/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
+   </a>
+   <a href="https://goreportcard.com/report/github.com/akdilsiz/agente">
+    <img src="https://goreportcard.com/badge/github.com/akdilsiz/agente"/>
+   </a>
+ </p>
+
 Distributed simple and robust release management and system monitoring system.
 
 This project currently maintained by **@TransferChain**
