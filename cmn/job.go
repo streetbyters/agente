@@ -37,4 +37,3 @@ func (j Job) Run(message *model.ReceivedMessage) {
 		fmt.Println(message)
 	}
 }
-

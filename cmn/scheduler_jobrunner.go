@@ -21,7 +21,7 @@ import "github.com/bamzi/jobrunner"
 
 // SchedulerJobRunner jobrunner package adapter
 type SchedulerJobRunner struct {
-	SchedulerInterface		`json:"-"`
+	SchedulerInterface `json:"-"`
 	*Scheduler
 }
 

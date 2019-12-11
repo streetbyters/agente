@@ -26,9 +26,9 @@ import (
 // ChannelRabbitMq queuing structure
 type ChannelRabbitMq struct {
 	ChannelInterface
-	App 		*App
-	Conn		*amqp.Connection
-	Channel		*amqp.Channel
+	App     *App
+	Conn    *amqp.Connection
+	Channel *amqp.Channel
 }
 
 // NewRabbitMq building rabbitMQ queuing
@@ -39,9 +39,9 @@ func NewRabbitMq(app *App) *ChannelRabbitMq {
 // Start RabbitMQ Conn
 func (r *ChannelRabbitMq) Start() {
 	uri := url.URL{
-		Scheme:     "amqp",
-		User:      	url.UserPassword(r.App.Config.RabbitMqUser, r.App.Config.RabbitMqPass),
-		Host:       r.App.Config.RabbitMqHost + ":" + strconv.Itoa(r.App.Config.RabbitMqPort),
+		Scheme: "amqp",
+		User:   url.UserPassword(r.App.Config.RabbitMqUser, r.App.Config.RabbitMqPass),
+		Host:   r.App.Config.RabbitMqHost + ":" + strconv.Itoa(r.App.Config.RabbitMqPort),
 	}
 	conn, err := amqp.Dial(uri.String())
 	if err != nil {
@@ -61,13 +61,13 @@ func (r *ChannelRabbitMq) Subscribe() {
 	r.Channel = channel
 
 	err = r.Channel.ExchangeDeclare(
-		r.App.Config.ChannelName,   // name
-		"fanout", // type
-		true,     // durable
-		false,    // auto-deleted
-		false,    // internal
-		false,    // no-wait
-		nil,      // arguments
+		r.App.Config.ChannelName,
+		"fanout",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 	if err != nil {
 		r.App.Logger.LogError(err, "rabbitMQ error channel exchange declare")
@@ -77,21 +77,21 @@ func (r *ChannelRabbitMq) Subscribe() {
 // Receive consume rabbitMQ channel
 func (r *ChannelRabbitMq) Receive() {
 	q, err := r.Channel.QueueDeclare(
-		"",    // name
-		false, // durable
-		false, // delete when unused
-		true,  // exclusive
-		false, // no-wait
-		nil,   // arguments
+		"",
+		false,
+		false,
+		true,
+		false,
+		nil,
 	)
 	if err != nil {
 		r.App.Logger.LogError(err, "rabbitMQ error channel queue declare")
 	}
 
 	err = r.Channel.QueueBind(
-		q.Name, // queue name
-		"",     // routing key
-		r.App.Config.ChannelName, // exchange
+		q.Name,
+		"",
+		r.App.Config.ChannelName,
 		false,
 		nil)
 	if err != nil {
@@ -99,13 +99,13 @@ func (r *ChannelRabbitMq) Receive() {
 	}
 
 	received, err := r.Channel.Consume(
-		q.Name, // queue
-		"",     // consumer
-		true,   // auto-ack
-		false,  // exclusive
-		false,  // no-local
-		false,  // no-wait
-		nil,    // args
+		q.Name,
+		"",
+		true,
+		false,
+		false,
+		false,
+		nil,
 	)
 
 	go func() {
@@ -115,7 +115,7 @@ func (r *ChannelRabbitMq) Receive() {
 		}
 	}()
 
-	<- r.App.Channel
+	<-r.App.Channel
 
 	defer r.Channel.Close()
 	defer r.Conn.Close()

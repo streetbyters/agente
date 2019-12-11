@@ -26,9 +26,9 @@ import (
 // ChannelRedis queuing structure
 type ChannelRedis struct {
 	ChannelInterface
-	App		*App
-	Client	*redis.Client
-	PubSub	*redis.PubSub
+	App    *App
+	Client *redis.Client
+	PubSub *redis.PubSub
 }
 
 // NewRedis building redis queuing
@@ -39,14 +39,13 @@ func NewRedis(app *App) *ChannelRedis {
 // Start Redis Conn
 func (r *ChannelRedis) Start() {
 	client := redis.NewClient(&redis.Options{
-		Network:            "tcp",
-		Addr:               strings.Join([]string{r.App.Config.RedisHost,
-			strconv.Itoa(r.App.Config.RedisPort)}, ":"),
-		Dialer:             nil,
-		OnConnect:          nil,
-		Password:           r.App.Config.RedisPass,
-		DB:                 r.App.Config.RedisDB,
-		PoolSize:           5,
+		Network:   "tcp",
+		Addr:      strings.Join([]string{r.App.Config.RedisHost, strconv.Itoa(r.App.Config.RedisPort)}, ":"),
+		Dialer:    nil,
+		OnConnect: nil,
+		Password:  r.App.Config.RedisPass,
+		DB:        r.App.Config.RedisDB,
+		PoolSize:  5,
 	})
 
 	_, err := client.Ping().Result()

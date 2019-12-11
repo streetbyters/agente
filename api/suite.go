@@ -40,26 +40,28 @@ type Suite struct {
 
 // Method request method for test api request
 type Method string
+
 const (
 	// Post method for api request
-	Post	Method = "POST"
+	Post Method = "POST"
 	// Get method for api request
-	Get		Method = "GET"
+	Get Method = "GET"
 	// Put method for api request
-	Put		Method = "PUT"
+	Put Method = "PUT"
 	// Delete method for api request
-	Delete	Method = "DELETE"
+	Delete Method = "DELETE"
 )
 
 // ContentType request content type for test api request
 type ContentType string
+
 const (
 	// JSON Content type for api request
-	JSON	ContentType = "application/json"
+	JSON ContentType = "application/json"
 	// XML Content type for api request
-	XML		ContentType = "application/xml"
+	XML ContentType = "application/xml"
 	// HTML Content type for api request
-	HTML	ContentType = "text/html"
+	HTML ContentType = "text/html"
 )
 
 // TestResponse response model for test api request
@@ -92,25 +94,25 @@ func NewSuite() *Suite {
 	}
 
 	config := &model.Config{
-		Path:			appPath,
-		Port:			viper.GetInt("PORT"),
-		DB:				model.DB(viper.GetString("DB")),
-		DBPath:			dbPath,
-		DBName:			viper.GetString("DB_NAME"),
-		DBHost: 		viper.GetString("DB_HOST"),
-		DBPort:			viper.GetInt("DB_PORT"),
-		DBUser:			viper.GetString("DB_USER"),
-		DBPass:			viper.GetString("DB_PASS"),
-		DBSsl:			viper.GetString("DB_SSL"),
-		RabbitMqHost:	viper.GetString("RABBITMQ_HOST"),
-		RabbitMqPort:	viper.GetInt("RABBITMQ_PORT"),
-		RabbitMqUser:	viper.GetString("RABBITMQ_USER"),
-		RabbitMqPass:	viper.GetString("RABBITMQ_PASS"),
-		RedisHost:		viper.GetString("REDIS_HOST"),
-		RedisPort:		viper.GetInt("REDIS_PORT"),
-		RedisPass:		viper.GetString("REDIS_PASS"),
-		RedisDB:		viper.GetInt("REDIS_DB"),
-		Versioning:		viper.GetBool("VERSIONING"),
+		Path:         appPath,
+		Port:         viper.GetInt("PORT"),
+		DB:           model.DB(viper.GetString("DB")),
+		DBPath:       dbPath,
+		DBName:       viper.GetString("DB_NAME"),
+		DBHost:       viper.GetString("DB_HOST"),
+		DBPort:       viper.GetInt("DB_PORT"),
+		DBUser:       viper.GetString("DB_USER"),
+		DBPass:       viper.GetString("DB_PASS"),
+		DBSsl:        viper.GetString("DB_SSL"),
+		RabbitMqHost: viper.GetString("RABBITMQ_HOST"),
+		RabbitMqPort: viper.GetInt("RABBITMQ_PORT"),
+		RabbitMqUser: viper.GetString("RABBITMQ_USER"),
+		RabbitMqPass: viper.GetString("RABBITMQ_PASS"),
+		RedisHost:    viper.GetString("REDIS_HOST"),
+		RedisPort:    viper.GetInt("REDIS_PORT"),
+		RedisPass:    viper.GetString("REDIS_PASS"),
+		RedisDB:      viper.GetInt("REDIS_DB"),
+		Versioning:   viper.GetBool("VERSIONING"),
 	}
 
 	database, err := cmn.NewDB(config, logger)
@@ -155,17 +157,17 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 	req.Header.SetRequestURI(path)
 	req.Header.SetContentType(string(contentType) + "; charset=utf-8")
 	if auth {
-		req.Header.Set("Authorization", "Bearer " + authToken)
+		req.Header.Set("Authorization", "Bearer "+authToken)
 	}
 	req.Header.SetMethod(string(method))
 
 	if len(body) > 0 {
 		switch contentType {
 		case JSON:
-				b, err := json.Marshal(body[0])
-				if err != nil {
-					req.SetBody(b)
-				}
+			b, err := json.Marshal(body[0])
+			if err != nil {
+				req.SetBody(b)
+			}
 			break
 		case XML:
 			b, err := xml.Marshal(body[0])

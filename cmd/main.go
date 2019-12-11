@@ -32,6 +32,7 @@ import (
 
 // configFile App config file name string
 var configFile string
+
 // devMode Development mode flag
 var devMode bool
 
@@ -74,27 +75,27 @@ func main() {
 	}
 
 	config := &model.Config{
-		Path:			appPath,
-		Port:			viper.GetInt("PORT"),
-		DB:				model.DB(viper.GetString("DB")),
-		DBPath:			dbPath,
-		DBName:			viper.GetString("DB_NAME"),
-		DBHost: 		viper.GetString("DB_HOST"),
-		DBPort:			viper.GetInt("DB_PORT"),
-		DBUser:			viper.GetString("DB_USER"),
-		DBPass:			viper.GetString("DB_PASS"),
-		DBSsl:			viper.GetString("DB_SSL"),
-		RabbitMqHost:	viper.GetString("RABBITMQ_HOST"),
-		RabbitMqPort:	viper.GetInt("RABBITMQ_PORT"),
-		RabbitMqUser:	viper.GetString("RABBITMQ_USER"),
-		RabbitMqPass:	viper.GetString("RABBITMQ_PASS"),
-		RedisHost:		viper.GetString("REDIS_HOST"),
-		RedisPort:		viper.GetInt("REDIS_PORT"),
-		RedisPass:		viper.GetString("REDIS_PASS"),
-		RedisDB:		viper.GetInt("REDIS_DB"),
-		ChannelName:	viper.GetString("CHANNEL_NAME"),
-		Versioning:		viper.GetBool("VERSIONING"),
-		Scheduler:		viper.GetString("SCHEDULER"),
+		Path:         appPath,
+		Port:         viper.GetInt("PORT"),
+		DB:           model.DB(viper.GetString("DB")),
+		DBPath:       dbPath,
+		DBName:       viper.GetString("DB_NAME"),
+		DBHost:       viper.GetString("DB_HOST"),
+		DBPort:       viper.GetInt("DB_PORT"),
+		DBUser:       viper.GetString("DB_USER"),
+		DBPass:       viper.GetString("DB_PASS"),
+		DBSsl:        viper.GetString("DB_SSL"),
+		RabbitMqHost: viper.GetString("RABBITMQ_HOST"),
+		RabbitMqPort: viper.GetInt("RABBITMQ_PORT"),
+		RabbitMqUser: viper.GetString("RABBITMQ_USER"),
+		RabbitMqPass: viper.GetString("RABBITMQ_PASS"),
+		RedisHost:    viper.GetString("REDIS_HOST"),
+		RedisPort:    viper.GetInt("REDIS_PORT"),
+		RedisPass:    viper.GetString("REDIS_PASS"),
+		RedisDB:      viper.GetInt("REDIS_DB"),
+		Versioning:   viper.GetBool("VERSIONING"),
+		ChannelName:  viper.GetString("CHANNEL_NAME"),
+		Scheduler:    viper.GetString("SCHEDULER"),
 	}
 
 	if config.DB == "" {
@@ -133,6 +134,5 @@ func main() {
 		}
 	}()
 
-	<- newApp.Channel
+	<-newApp.Channel
 }
-

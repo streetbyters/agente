@@ -37,15 +37,16 @@ type Tables string
 
 // DB Table enums
 const (
-	tUser Tables = "ra_users"
-	tJob Tables = "ra_jobs"
+	tUser      Tables = "ra_users"
+	tJob       Tables = "ra_jobs"
 	tJobDetail Tables = "ra_job_details"
-	tJobLog Tables = "ra_job_logs"
+	tJobLog    Tables = "ra_job_logs"
 	tMigration Tables = "ra_migrations"
 )
 
 // Error for database violation errors
 type Error int
+
 const (
 	// TableNotFound sql violation code
 	TableNotFound Error = 1
@@ -55,24 +56,24 @@ const (
 
 // Database struct
 type Database struct {
-	Config		*model.Config
-	Type 		model.DB
-	Bolt		*bolt.DB
-	DB			*sqlx.DB
-	Tx			*sqlx.Tx
-	Error		error
+	Config *model.Config
+	Type   model.DB
+	Bolt   *bolt.DB
+	DB     *sqlx.DB
+	Tx     *sqlx.Tx
+	Error  error
 }
 
 // Tx transaction for database queries
 type Tx struct {
-	DB		*Database
+	DB *Database
 }
 
 // Result structure for database query results
 type Result struct {
-	Rows 	[]interface{}
-	Count	int64
-	Error	error
+	Rows  []interface{}
+	Count int64
+	Error error
 }
 
 // NewDB building database
@@ -214,7 +215,7 @@ func migrationFiles(db *Database, typ string) map[int]string {
 	var files []string
 	files, _ = filepath.Glob(filepath.Join(db.Config.DBPath, string(db.Config.DB), "[0-9]*.*."+typ+".sql"))
 	for _, f := range files {
-		fileName := strings.Split(f, "/")[len(strings.Split(f, "/")) - 1]
+		fileName := strings.Split(f, "/")[len(strings.Split(f, "/"))-1]
 		fileNumber := strings.Split(fileName, ".")[0]
 		n, _ := strconv.Atoi(fileNumber)
 		data, err := ioutil.ReadFile(f)

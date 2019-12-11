@@ -21,10 +21,13 @@ type DB string
 
 // Bolt DB Enum
 const Bolt DB = "bolt"
+
 // Postgres Enum
 const Postgres DB = "postgres"
+
 // Mysql Enum
-const Mysql	DB = "mysql"
+const Mysql DB = "mysql"
+
 // Unknown enum. This enum just test mode
 const Unknown DB = "unknown"
 
@@ -33,8 +36,10 @@ type MODE string
 
 // Dev Development mode enum
 const Dev MODE = "dev"
+
 // Test mode enum
 const Test MODE = "test"
+
 // Prod Production model enum
 const Prod MODE = "prod"
 
@@ -43,13 +48,13 @@ type JobType string
 
 const (
 	// NewRelease job type
-	NewRelease		JobType = "new_release"
+	NewRelease JobType = "new_release"
 	// Start job type
-	Start			JobType = "start"
+	Start JobType = "start"
 	// Restart job type
-	Restart			JobType = "restart"
+	Restart JobType = "restart"
 	// Shutdown job type
-	Shutdown		JobType = "shutdown"
+	Shutdown JobType = "shutdown"
 	// Other job type
-	Other			JobType	= "other"
+	Other JobType = "other"
 )

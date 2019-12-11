@@ -22,7 +22,7 @@ import (
 
 // Scheduler application job scheduler
 type Scheduler struct {
-	App *App
+	App     *App
 	Package SchedulerInterface
 }
 
