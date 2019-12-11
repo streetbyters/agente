@@ -20,6 +20,7 @@ This project currently maintained by **@TransferChain**
 ### Road map
  - [ ] Core system
  - [ ] First worker agent
+ - [ ] Management dashboard
  - [ ] Jenkins vs CI tool extensions
  - [ ] Management dashboard
  - [ ] First master agent
@@ -28,6 +29,9 @@ This project currently maintained by **@TransferChain**
 ## Requirements
  - Go > 1.9
  - Redis or RabbitMQ
+
+The application comes with **SQLite** as the database if you are going to run it in the local environment. \
+Supported from **PostgreSQL** and **MySQL**.
 
 ## Development
 ```shell script
