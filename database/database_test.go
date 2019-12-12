@@ -52,7 +52,7 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:   model.Test,
 		DB:     model.Postgres,
-		DBName: "agente",
+		DBName: "agente_test",
 		DBHost: "127.0.0.1",
 		DBPort: 5432,
 		DBUser: "agente",
@@ -91,7 +91,7 @@ func Test_NewDB(t *testing.T) {
 	config = &model.Config{
 		Mode:   model.Test,
 		DB:     model.Postgres,
-		DBName: "agente",
+		DBName: "agente_test",
 		DBHost: "127.0.0.4",
 		DBPort: 5435,
 		DBUser: "agente",
@@ -107,64 +107,64 @@ func Test_NewDB(t *testing.T) {
 	logger.LogInfo("Failed postgres db connection if given invalid " +
 		"port")
 
-	// Open mysql db connection
-	config = &model.Config{
-		Mode:   model.Test,
-		DB:     model.Mysql,
-		DBName: "agente",
-		DBHost: "127.0.0.1",
-		DBPort: 3306,
-		DBUser: "agente",
-		DBPass: "123456",
-		DBSsl:  "false",
-	}
-
-	_, err = NewDB(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	logger.LogInfo("Success open mysql db connection")
-
-	// Failed mysql db connection if given invalid information
-	config = &model.Config{
-		Mode:   model.Test,
-		DB:     model.Mysql,
-		DBName: "agente-error",
-		DBHost: "127.0.0.1",
-		DBPort: 3306,
-		DBUser: "agente-error",
-		DBPass: "123456",
-		DBSsl:  "false",
-	}
-
-	_, err = NewDB(config)
-	if err == nil {
-		t.Fatal(err)
-	}
-
-	logger.LogInfo("Failed mysql db connection if given invalid " +
-		"information")
-
-	//Failed mysql db connection if given invalid port
-	config = &model.Config{
-		Mode:   model.Test,
-		DB:     model.Mysql,
-		DBName: "agente-error",
-		DBHost: "127.0.0.1",
-		DBPort: 3303,
-		DBUser: "agente-error",
-		DBPass: "123456",
-		DBSsl:  "false",
-	}
-
-	_, err = NewDB(config)
-	if err == nil {
-		t.Fatal(err)
-	}
-
-	logger.LogInfo("Failed mysql db connection if given invalid " +
-		"port")
+	//// Open mysql db connection
+	//config = &model.Config{
+	//	Mode:   model.Test,
+	//	DB:     model.Mysql,
+	//	DBName: "agente",
+	//	DBHost: "127.0.0.1",
+	//	DBPort: 3306,
+	//	DBUser: "agente",
+	//	DBPass: "123456",
+	//	DBSsl:  "false",
+	//}
+	//
+	//_, err = NewDB(config)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+	//
+	//logger.LogInfo("Success open mysql db connection")
+	//
+	//// Failed mysql db connection if given invalid information
+	//config = &model.Config{
+	//	Mode:   model.Test,
+	//	DB:     model.Mysql,
+	//	DBName: "agente-error",
+	//	DBHost: "127.0.0.1",
+	//	DBPort: 3306,
+	//	DBUser: "agente-error",
+	//	DBPass: "123456",
+	//	DBSsl:  "false",
+	//}
+	//
+	//_, err = NewDB(config)
+	//if err == nil {
+	//	t.Fatal(err)
+	//}
+	//
+	//logger.LogInfo("Failed mysql db connection if given invalid " +
+	//	"information")
+	//
+	////Failed mysql db connection if given invalid port
+	//config = &model.Config{
+	//	Mode:   model.Test,
+	//	DB:     model.Mysql,
+	//	DBName: "agente-error",
+	//	DBHost: "127.0.0.1",
+	//	DBPort: 3303,
+	//	DBUser: "agente-error",
+	//	DBPass: "123456",
+	//	DBSsl:  "false",
+	//}
+	//
+	//_, err = NewDB(config)
+	//if err == nil {
+	//	t.Fatal(err)
+	//}
+	//
+	//logger.LogInfo("Failed mysql db connection if given invalid " +
+	//	"port")
 
 	//Failed db connection if unsupported database type
 	config = &model.Config{
