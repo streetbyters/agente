@@ -15,7 +15,7 @@ services:
   - rabbitmq
 
 before_install:
-  - go get -v ./...
+  - go mod tidy
   - go mod vendor
 
 notifications:
