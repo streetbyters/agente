@@ -256,7 +256,7 @@ func baseMigrations(db *Database) error {
 
 	_, err = db.DB.Queryx("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 	if err != nil {
-		if  int(dbError(db, err)) == int(TableNotFound) {
+		if int(dbError(db, err)) == int(TableNotFound) {
 			err = nil
 			tx, _ := db.DB.Beginx()
 			for _, f := range files {
@@ -266,23 +266,6 @@ func baseMigrations(db *Database) error {
 					break
 				}
 			}
-			//for _, f := range files {
-			//	switch f.Name {
-			//	case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
-			//		break
-			//	default:
-			//		_, err = db.DB.Exec(f.Data)
-			//		if err != nil {
-			//			err = tx.Rollback()
-			//			break
-			//		}
-			//		err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
-			//			"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
-			//		if err == nil {
-			//			db.Logger.LogInfo("Migrate: " + f.Name)
-			//		}
-			//	}
-			//}
 
 			if err != nil {
 				tx.Rollback()
@@ -322,7 +305,7 @@ func newMigrations(db *Database) error {
 						break
 					}
 
-					err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
+					err = tx.QueryRowx("INSERT INTO "+string(tMigration)+" ("+
 						"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
 					if err == nil {
 						db.Logger.LogInfo("Migrate: " + f.Name)
@@ -335,7 +318,7 @@ func newMigrations(db *Database) error {
 					break
 				}
 
-				err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
+				err = tx.QueryRowx("INSERT INTO "+string(tMigration)+" ("+
 					"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
 				if err == nil {
 					db.Logger.LogInfo("Migrate: " + f.Name)
@@ -459,7 +442,7 @@ func (d *Database) query(query string, target DBInterface, params ...interface{}
 	return result
 }
 
-// QueryRow database row query builder with target model
+// QueryRowWithModel database row query builder with target model
 func (d *Database) QueryRowWithModel(query string, target interface{}, params ...interface{}) Result {
 	return d.queryRow(query, target, params...)
 }
@@ -552,17 +535,17 @@ func (t *Tx) Delete(table Tables, whereClause string) Result {
 }
 
 func insertSQL(columns []string, tableName string, keyColumn string, args ...interface{}) (string, error) {
-	tmplStr := `insert into {{.TableName}} (`+
+	tmplStr := `insert into {{.TableName}} (` +
 		`{{$putComa := false}}` +
-		`{{- range $i, $f := .Columns}}`+
-		`{{if $putComa}}, {{end}}{{$f}}{{$putComa = true}} `+
-		`{{- end}}`+
-		`) values (`+
-		`{{$putComa := false}}`+
-		`{{- range $i, $f := .Columns}}`+
-		`{{if $putComa}}, {{end}}:{{$f}}{{$putComa = true}} `+
-		`{{- end}}`+
-		`) `+
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}{{$f}}{{$putComa = true}} ` +
+		`{{- end}}` +
+		`) values (` +
+		`{{$putComa := false}}` +
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}:{{$f}}{{$putComa = true}} ` +
+		`{{- end}}` +
+		`) ` +
 		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
 
 	data := struct {
@@ -579,23 +562,23 @@ func insertSQL(columns []string, tableName string, keyColumn string, args ...int
 }
 
 func updateSQL(columns []string, tableName string, whereClause string, keyColumn string) (string, error) {
-	tmplStr := `update {{.TableName}} set `+
+	tmplStr := `update {{.TableName}} set ` +
 		`{{$putComa := false}} ` +
 		`{{- range $i, $f := .Columns}}` +
 		`{{if $putComa}}, {{end}}{{$f}} = :{{$f}}{{$putComa = true}} ` +
-		`{{- end}} `+
-		`where {{.WhereClause}} `+
+		`{{- end}} ` +
+		`where {{.WhereClause}} ` +
 		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
 
 	data := struct {
-		TableName string
-		Columns   []string
-		KeyColumn string
+		TableName   string
+		Columns     []string
+		KeyColumn   string
 		WhereClause string
 	}{
-		TableName: tableName,
-		Columns:   columns,
-		KeyColumn: keyColumn,
+		TableName:   tableName,
+		Columns:     columns,
+		KeyColumn:   keyColumn,
 		WhereClause: whereClause,
 	}
 
