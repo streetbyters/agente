@@ -25,8 +25,8 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
-		ID:       "test",
-		Password: "test",
+		ID:       "akdilsiz",
+		Password: "123456",
 	}
 
 	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)

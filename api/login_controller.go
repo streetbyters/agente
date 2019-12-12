@@ -45,10 +45,9 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	var userModel model2.User
-
-	result := c.App.Database.QueryRow("SELECT * FROM " + userModel.TableName() + " AS u" +
-		"WHERE u.username = $1 OR u.email = $1")
+	userModel := new(model2.User)
+	result := c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
+		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID)
 	if result.Error != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: nil,
@@ -57,8 +56,9 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
+	fmt.Println(userModel)
+
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: "OK",
 	}, http.StatusCreated)
 }
-
