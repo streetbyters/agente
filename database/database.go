@@ -305,8 +305,8 @@ func newMigrations(db *Database) error {
 						break
 					}
 
-					err = tx.QueryRowx("INSERT INTO "+string(tMigration)+" ("+
-						"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+					_, err = tx.Exec("INSERT INTO "+string(tMigration)+" ("+
+						"number, name) VALUES ($1, $2)", f.Number, f.Name)
 					if err == nil {
 						db.Logger.LogInfo("Migrate: " + f.Name)
 					}
@@ -318,8 +318,8 @@ func newMigrations(db *Database) error {
 					break
 				}
 
-				err = tx.QueryRowx("INSERT INTO "+string(tMigration)+" ("+
-					"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+				_, err = tx.Exec("INSERT INTO "+string(tMigration)+" ("+
+					"number, name) VALUES ($1, $2)", f.Number, f.Name)
 				if err == nil {
 					db.Logger.LogInfo("Migrate: " + f.Name)
 				}
