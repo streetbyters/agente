@@ -70,6 +70,12 @@ type Database struct {
 	Reset  bool
 }
 
+// DBInterface database model interface
+type DBInterface interface {
+	TableName() string
+	ToJSON() string
+}
+
 // Tx transaction for database queries
 type Tx struct {
 	DB *Database
