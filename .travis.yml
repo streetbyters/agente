@@ -11,12 +11,9 @@ git:
   depth: 1
 
 addons:
-  postgresql: "11"
   apt:
     packages:
       - rabbitmq-server
-      - postgresql-11
-      - postgresql-client-11
 
 services:
   - rabbitmq
