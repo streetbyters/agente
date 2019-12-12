@@ -1,0 +1,22 @@
+language: go
+
+go:
+  - 1.9.x
+  - tip
+
+git:
+  depth: 1
+
+before_install:
+  - go get -t -v ./...
+  - go mod vendor
+
+notifications:
+  email: false
+
+script:
+  - go run ./cmd -mode test -migrate -reset
+  - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
