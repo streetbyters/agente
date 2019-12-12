@@ -32,7 +32,7 @@ notifications:
   email: false
 
 before_script:
-  - psql -c "create user agente login password '123456';"
+  - psql -c "create user agente login password '123456';" -U postgres
   - psql -c "create database agente_test owner agente;" -U postgres
 
 script:
