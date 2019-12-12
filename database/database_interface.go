@@ -14,39 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package model
+package database
 
-import (
-	"encoding/json"
-)
-
-// ResponseSuccess rest api success response structure
-type ResponseSuccess struct {
-	ResponseInterface `json:"-"`
-	Data              interface{} `json:"data"`
-	TotalCount        int64       `json:"total_count"`
-}
-
-// ToJSON response structure to json string
-func (r ResponseSuccess) ToJSON() string {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	}
-	return string(body)
-}
-
-// ResponseSuccessOne rest api success response structure
-type ResponseSuccessOne struct {
-	ResponseInterface `json:"-"`
-	Data              interface{} `json:"data"`
-}
-
-// ToJSON response structure to json string
-func (r ResponseSuccessOne) ToJSON() string {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	}
-	return string(body)
+// DBInterface database model interface
+type DBInterface interface {
+	TableName()	string
+	ToJSON()    string
 }

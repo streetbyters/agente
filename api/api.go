@@ -17,9 +17,13 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
+	"net/url"
 )
 
 // API rest api structure
@@ -34,6 +38,24 @@ func NewAPI(app *cmn.App) *API {
 	api.Router = NewRouter(api)
 
 	return api
+}
+
+// ParseQuery parse url query string
+func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
+	qs, _ := url.ParseQuery(string(ctx.URI().QueryString()))
+	values := make(map[string]string)
+	for key, val := range qs {
+		values[key] = val[0]
+	}
+
+	return values
+}
+
+// JSONBody parse given model request body
+func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
+	fmt.Println(string(ctx.PostBody()))
+	r := bytes.NewReader(ctx.PostBody())
+	json.NewDecoder(r).Decode(&model)
 }
 
 // JSONResponse building json response

@@ -14,13 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package database
 
 import (
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -29,6 +30,7 @@ import (
 	_ "github.com/mattn/go-sqlite3" // SQLite Driver
 	"io/ioutil"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -63,7 +65,9 @@ type Database struct {
 	Type   model.DB
 	DB     *sqlx.DB
 	Tx     *sqlx.Tx
+	Logger *utils.Logger
 	Error  error
+	Reset  bool
 }
 
 // Tx transaction for database queries
@@ -79,7 +83,7 @@ type Result struct {
 }
 
 // NewDB building database
-func NewDB(config *model.Config, logger *Logger) (*Database, error) {
+func NewDB(config *model.Config) (*Database, error) {
 	database := &Database{}
 	database.Config = config
 
@@ -170,7 +174,26 @@ func InstallDB(database *Database) error {
 	var err error
 
 	switch database.Type {
-	case model.SQLite, model.Postgres, model.Mysql:
+	case model.SQLite:
+		if database.Reset {
+			database.DB.Exec("PRAGMA writable_schema = 1;")
+			database.DB.Exec("delete from sqlite_master where type in ('table', 'index', 'trigger');")
+			database.DB.Exec("PRAGMA writable_schema = 0;")
+			database.DB.Exec("VACUUM;")
+		}
+		err = migrationUp(database)
+		break
+	case model.Postgres:
+		if database.Reset {
+			database.DB.Exec("DROP SCHEMA public CASCADE;")
+			database.DB.Exec("CREATE SCHEMA public;")
+			database.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
+			database.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+		}
+
+		err = migrationUp(database)
+		break
+	case model.Mysql:
 		err = migrationUp(database)
 		break
 	}
@@ -220,30 +243,31 @@ func migrationUp(db *Database) error {
 			for _, f := range files {
 				switch f.Name {
 				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
-					err = db.DB.QueryRowx(f.Data).Err()
+					_, err = db.DB.Exec(f.Data)
 					break
 				}
 			}
-
 			tx, _ := db.DB.Beginx()
-
 			for _, f := range files {
 				switch f.Name {
 				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
 					break
 				default:
-					_, err = tx.Queryx(f.Data)
+					_, err = db.DB.Exec(f.Data)
 					if err != nil {
 						err = tx.Rollback()
 						break
 					}
-
 					err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
 						"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+					if err == nil {
+						db.Logger.LogInfo("Migrate: " + f.Name)
+					}
 				}
 			}
 
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 			tx.Commit()
@@ -251,8 +275,6 @@ func migrationUp(db *Database) error {
 
 		return nil
 	}
-
-	err = nil
 
 	result = db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 	var lastMigration []interface{}
@@ -271,7 +293,7 @@ func migrationUp(db *Database) error {
 		default:
 			if len(lastMigration) > 0 {
 				if f.Number > int(lastMigration[1].(int64)) {
-					err = tx.QueryRowx(f.Data).Err()
+					_, err = tx.Exec(f.Data)
 					if err != nil {
 						tx.Rollback()
 						break
@@ -279,9 +301,12 @@ func migrationUp(db *Database) error {
 
 					err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
 						"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+					if err == nil {
+						db.Logger.LogInfo("Migrate: " + f.Name)
+					}
 				}
 			} else {
-				err = tx.QueryRowx(f.Data).Err()
+				_, err = tx.Exec(f.Data)
 				if err != nil {
 					tx.Rollback()
 					break
@@ -289,6 +314,9 @@ func migrationUp(db *Database) error {
 
 				err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
 					"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+				if err == nil {
+					db.Logger.LogInfo("Migrate: " + f.Name)
+				}
 			}
 		}
 	}
@@ -427,21 +455,37 @@ func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
 }
 
 // Select query builder by database type.
-func (t *Tx) Select(table Tables, whereClause string) Result {
+func (t *Tx) Select(table string, whereClause string) Result {
 	result := Result{}
 
 	return result
 }
 
 // Insert query builder by database type
-func (t *Tx) Insert(table Tables, data interface{}) Result {
-	result := Result{}
+func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) (sql.Result, error) {
+	_, c1, namedParams := GetChanges(m, data, "insert")
+	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
 
-	return result
+	if d.Type == model.SQLite {
+		_s := strings.Split(str, "returning")
+		str = _s[0]
+	}
+
+	query, args, _ := sqlx.Named(str, namedParams)
+	_, args, _ = sqlx.In(query, args...)
+
+	r, e := d.DB.Exec(str, args...)
+
+	if e == nil {
+		id, _ := r.LastInsertId()
+		reflect.ValueOf(m).Elem().FieldByName("ID").SetInt(id)
+	}
+
+	return r, e
 }
 
 // Update query builder by database type
-func (t *Tx) Update(table Tables, whereClause string, data interface{}) Result {
+func (t *Tx) Update(table string, whereClause string, data interface{}) Result {
 	result := Result{}
 
 	return result
@@ -452,4 +496,55 @@ func (t *Tx) Delete(table Tables, whereClause string) Result {
 	result := Result{}
 
 	return result
+}
+
+func insertSQL(columns []string, tableName string, keyColumn string, args ...interface{}) (string, error) {
+	tmplStr := `insert into {{.TableName}} (`+
+		`{{$putComa := false}}` +
+		`{{- range $i, $f := .Columns}}`+
+		`{{if $putComa}}, {{end}}{{$f}}{{$putComa = true}} `+
+		`{{- end}}`+
+		`) values (`+
+		`{{$putComa := false}}`+
+		`{{- range $i, $f := .Columns}}`+
+		`{{if $putComa}}, {{end}}:{{$f}}{{$putComa = true}} `+
+		`{{- end}}`+
+		`) `+
+		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
+
+	data := struct {
+		TableName string
+		Columns   []string
+		KeyColumn string
+	}{
+		TableName: tableName,
+		Columns:   columns,
+		KeyColumn: keyColumn,
+	}
+
+	return utils.ParseAndExecTemplateFromString(tmplStr, data)
+}
+
+func updateSQL(columns []string, tableName string, whereClause string, keyColumn string) (string, error) {
+	tmplStr := `update {{.TableName}} set `+
+		`{{$putComa := false}} ` +
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}{{$f}} = :{{$f}}{{$putComa = true}} ` +
+		`{{- end}} `+
+		`where {{.WhereClause}} `+
+		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
+
+	data := struct {
+		TableName string
+		Columns   []string
+		KeyColumn string
+		WhereClause string
+	}{
+		TableName: tableName,
+		Columns:   columns,
+		KeyColumn: keyColumn,
+		WhereClause: whereClause,
+	}
+
+	return utils.ParseAndExecTemplateFromString(tmplStr, data)
 }

@@ -1,7 +1,8 @@
-package cmn
+package database
 
 import (
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,7 +10,7 @@ import (
 	"testing"
 )
 
-var logger = NewLogger("test")
+var logger = utils.NewLogger("test")
 var appPath, _ = os.Getwd()
 var dirs = strings.SplitAfter(appPath, "agente")
 
@@ -24,7 +25,7 @@ func Test_NewDB(t *testing.T) {
 		DBName: "agenteTest.db",
 	}
 
-	_, err := NewDB(config, logger)
+	_, err := NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +40,7 @@ func Test_NewDB(t *testing.T) {
 		DBName: "agenteTest.db",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -59,7 +60,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "disable",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +79,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "disable",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -98,7 +99,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "disable",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -118,7 +119,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "false",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +138,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "false",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -157,7 +158,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "false",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -177,7 +178,7 @@ func Test_NewDB(t *testing.T) {
 		DBSsl:  "false",
 	}
 
-	_, err = NewDB(config, logger)
+	_, err = NewDB(config)
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -196,11 +197,15 @@ func Test_InstallDB(t *testing.T) {
 		DBName: "agenteTest.db",
 	}
 
-	database, err := NewDB(config, logger)
+	database, err := NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
+	database.Logger = logger
 	err = DropDB(database)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	err = InstallDB(database)
 	if err != nil {
@@ -221,10 +226,11 @@ func Test_InstallDB(t *testing.T) {
 		DBSsl:  "disable",
 	}
 
-	database, err = NewDB(config, logger)
+	database, err = NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
+	database.Logger = logger
 	DropDB(database)
 
 	err = InstallDB(database)
@@ -246,10 +252,11 @@ func Test_InstallDB(t *testing.T) {
 		DBSsl:  "disable",
 	}
 
-	database, err = NewDB(config, logger)
+	database, err = NewDB(config)
 	if err != nil {
 		t.Fatal(err)
 	}
+	database.Logger = logger
 	DropDB(database)
 
 	err = InstallDB(database)

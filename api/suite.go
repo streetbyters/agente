@@ -18,9 +18,10 @@ package api
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"github.com/akdilsiz/agente/cmn"
+	"github.com/akdilsiz/agente/database"
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
@@ -35,13 +36,19 @@ import (
 // Suite application test structure
 type Suite struct {
 	suite.Suite
-	API *API
+	API  *API
+	Auth struct{
+		User  interface{}
+		Token string
+	}
 }
 
 // Method request method for test api request
 type Method string
 
 const (
+	// Options method for api request
+	Options Method = "OPTIONS"
 	// Post method for api request
 	Post Method = "POST"
 	// Get method for api request
@@ -68,6 +75,7 @@ const (
 type TestResponse struct {
 	Success model.ResponseSuccess
 	Error   model.ResponseError
+	Other   interface{}
 	Status  int
 }
 
@@ -84,14 +92,12 @@ func NewSuite() *Suite {
 	appPath = path.Join(dirs[0])
 	dbPath = appPath
 
-	logger := cmn.NewLogger(string(mode))
+	logger := utils.NewLogger(string(mode))
 
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
-	if err != nil {
-		logger.Panic().Err(err)
-	}
+	cmn.FailOnError(logger, err)
 
 	config := &model.Config{
 		Path:         appPath,
@@ -113,15 +119,18 @@ func NewSuite() *Suite {
 		RedisPass:    viper.GetString("REDIS_PASS"),
 		RedisDB:      viper.GetInt("REDIS_DB"),
 		Versioning:   viper.GetBool("VERSIONING"),
+		ChannelName:  viper.GetString("CHANNEL_NAME"),
+		Scheduler:    viper.GetString("SCHEDULER"),
 	}
 
-	database, err := cmn.NewDB(config, logger)
-	if err != nil {
-		logger.Panic().Err(err)
-	}
+	db, err := database.NewDB(config)
+	cmn.FailOnError(logger, err)
+	db.Logger = logger
+	db.Reset = true
+	database.InstallDB(db)
 
 	newApp := cmn.NewApp(config, logger)
-	newApp.Database = database
+	newApp.Database = db
 	newApp.Mode = model.Test
 
 	newAPI := NewAPI(newApp)
@@ -135,14 +144,14 @@ func Run(t *testing.T, s suite.TestingSuite) {
 }
 
 // JSON api json request
-func (s *Suite) JSON(method Method, path string, arg ...interface{}) *TestResponse {
-	return s.request(false, "", JSON, method, path, arg...)
+func (s *Suite) JSON(method Method, path string, arg interface{}) *TestResponse {
+	return s.request(JSON, method, path, arg)
 }
 
-// XML api xml request
-func (s *Suite) XML(method Method, path string, arg ...interface{}) *TestResponse {
-	return s.request(false, "", XML, method, path, arg...)
-}
+//// XML api xml request
+//func (s *Suite) XML(method Method, path string, arg ...interface{}) *TestResponse {
+//	return s.request(false, "", XML, method, path, arg...)
+//}
 
 // SetupSuite before suite processes
 func SetupSuite(s *Suite) {}
@@ -151,27 +160,22 @@ func SetupSuite(s *Suite) {}
 func TearDownSuite(s *Suite) {}
 
 // request test request for api
-func (s *Suite) request(auth bool, authToken string, contentType ContentType, method Method, path string, body ...interface{}) *TestResponse {
+func (s *Suite) request(contentType ContentType, method Method, path string, body interface{}) *TestResponse {
+	var err error
 	req := fasthttp.AcquireRequest()
 	req.Header.SetHost(s.API.Router.Addr)
 	req.Header.SetRequestURI(path)
 	req.Header.SetContentType(string(contentType) + "; charset=utf-8")
-	if auth {
-		req.Header.Set("Authorization", "Bearer "+authToken)
+	if s.Auth.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+s.Auth.Token)
 	}
 	req.Header.SetMethod(string(method))
 
-	if len(body) > 0 {
+	if body != nil {
 		switch contentType {
 		case JSON:
-			b, err := json.Marshal(body[0])
-			if err != nil {
-				req.SetBody(b)
-			}
-			break
-		case XML:
-			b, err := xml.Marshal(body[0])
-			if err != nil {
+			b, err := json.Marshal(body)
+			if err == nil {
 				req.SetBody(b)
 			}
 			break
@@ -179,10 +183,7 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 	}
 
 	resp := fasthttp.AcquireResponse()
-	err := s.serveAPI(s.API.Router.Handler.ServeFastHTTP, req, resp)
-	if err != nil {
-		//fmt.Println(err)
-	}
+	s.serveAPI(s.API.Router.Handler.ServeFastHTTP, req, resp)
 
 	testResponse := &TestResponse{}
 	if resp.StatusCode() >= 200 && resp.StatusCode() < 300 {
@@ -197,6 +198,8 @@ func (s *Suite) request(auth bool, authToken string, contentType ContentType, me
 		if err == nil {
 			testResponse.Error = ts2
 		}
+	} else {
+		testResponse.Other = resp.Body()
 	}
 
 	testResponse.Status = resp.StatusCode()
@@ -210,9 +213,7 @@ func (s *Suite) serveAPI(handler fasthttp.RequestHandler, req *fasthttp.Request,
 
 	go func() {
 		err := fasthttp.Serve(ln, handler)
-		if err != nil {
-			panic(err)
-		}
+		cmn.FailOnError(s.API.App.Logger, err)
 	}()
 
 	client := fasthttp.Client{
