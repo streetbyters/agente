@@ -7,6 +7,9 @@ go:
 git:
   depth: 1
 
+services:
+  - rabbitmq
+
 before_install:
   - go get -v ./...
   - go mod vendor
@@ -15,6 +18,9 @@ notifications:
   email: false
 
 script:
+  - rabbitmqctl add_user local local
+  - rabbitmqctl set_user_tags local administrator
+  - rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
   - go run ./cmd -mode test -migrate -reset
   - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
