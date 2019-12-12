@@ -3,6 +3,9 @@ language: go
 go:
   - 1.11.x
 
+env:
+  - GO111MODULE=on
+
 git:
   depth: 1
 
@@ -15,7 +18,7 @@ services:
   - rabbitmq
 
 before_install:
-  - go mod tidy
+  - go get -t -v ./...
   - go mod vendor
 
 notifications:
