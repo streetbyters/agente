@@ -18,6 +18,9 @@ services:
   - rabbitmq
 
 before_install:
+  - sudo rabbitmqctl add_user local local
+  - sudo rabbitmqctl set_user_tags local administrator
+  - sudo rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
   - go get -t -v ./...
   - go mod vendor
 
@@ -25,9 +28,6 @@ notifications:
   email: false
 
 script:
-  - rabbitmqctl add_user local local
-  - rabbitmqctl set_user_tags local administrator
-  - rabbitmqctl set_permissions -p / local ".*" ".*" ".*"
   - go run ./cmd -mode test -migrate -reset
   - go test -v -coverprofile=coverage.txt -covermode=atomic ./...
 
