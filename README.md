@@ -3,8 +3,14 @@
   <img height="150" src="assets/agente.png"/>
  </p>
  <p align="center">
+   <a href="https://travis-ci.org/akdilsiz/agente">
+    <img src="https://travis-ci.org/akdilsiz/agente.svg?branch=master"/>
+   </a>
    <a href="https://github.com/akdilsiz/agente/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
+   </a>
+   <a href="https://codecov.io/gh/akdilsiz/agente">
+     <img src="https://codecov.io/gh/akdilsiz/agente/branch/master/graph/badge.svg" />
    </a>
    <a href="https://goreportcard.com/report/github.com/akdilsiz/agente">
     <img src="https://goreportcard.com/badge/github.com/akdilsiz/agente"/>
