@@ -35,8 +35,18 @@ Supported from **PostgreSQL** and **MySQL**.
 
 ## Development
 ```shell script
+git clone https://github.com/akdilsiz/agente
+git checkout develop
+
 go mod vendor
-go run ./cmd -dev
+
+# Development Mode
+go run ./cmd -mode dev -migrate -reset
+go run ./cmd -mode dev
+
+# Test Mode
+go run ./cmd -mode test -migrate -reset
+go run ./cmd -mode test
 ```
 
 ## Contribution
