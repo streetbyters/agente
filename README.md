@@ -11,7 +11,7 @@
    </a>
  </p>
 
-Distributed simple and robust release management and system monitoring system.
+Distributed simple and robust release management and monitoring system.
 
 This project currently maintained by **[@TransferChain](https://github.com/TransferChain)**
 
