@@ -17,16 +17,18 @@
 package cmn
 
 import (
+	"github.com/akdilsiz/agente/database"
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	"os"
 )
 
 // App structure
 type App struct {
-	Database        *Database
+	Database        *database.Database
 	Channel         chan os.Signal
 	Config          *model.Config
-	Logger          *Logger
+	Logger          *utils.Logger
 	ChannelRabbitMq *ChannelRabbitMq
 	ChannelRedis    *ChannelRedis
 	Scheduler       *Scheduler
@@ -35,7 +37,7 @@ type App struct {
 }
 
 // NewApp building new app
-func NewApp(config *model.Config, logger *Logger) *App {
+func NewApp(config *model.Config, logger *utils.Logger) *App {
 	app := &App{
 		Config: config,
 		Logger: logger,
@@ -65,4 +67,12 @@ func NewApp(config *model.Config, logger *Logger) *App {
 	app.Logger.LogInfo("Started application")
 
 	return app
+}
+
+// FailOnError panic error with logger
+func FailOnError(logger *utils.Logger, err error) {
+	if err != nil {
+		logger.Panic().Err(err)
+		panic(err)
+	}
 }

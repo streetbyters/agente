@@ -10,6 +10,7 @@ require (
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/gavv/httpexpect v2.0.0+incompatible // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-redis/redis v6.15.6+incompatible // indirect
 	github.com/go-redis/redis/v7 v7.0.0-beta.4
 	github.com/go-sql-driver/mysql v1.4.0
@@ -18,6 +19,7 @@ require (
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
+	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/lib/pq v1.0.0
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible
@@ -26,6 +28,7 @@ require (
 	github.com/onsi/gomega v1.7.1 // indirect
 	github.com/rs/zerolog v1.17.2
 	github.com/sergi/go-diff v1.0.0 // indirect
+	github.com/shopspring/decimal v0.0.0-20191130220710-360f2bc03045
 	github.com/spf13/viper v1.6.1
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/stretchr/testify v1.4.0
@@ -36,4 +39,7 @@ require (
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
 	github.com/yudai/pp v2.0.1+incompatible // indirect
 	go.etcd.io/bbolt v1.3.3
+	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
+	gopkg.in/go-playground/validator.v9 v9.30.2
+	gopkg.in/guregu/null.v3 v3.4.0
 )

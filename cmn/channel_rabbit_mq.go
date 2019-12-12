@@ -44,9 +44,8 @@ func (r *ChannelRabbitMq) Start() {
 		Host:   r.App.Config.RabbitMqHost + ":" + strconv.Itoa(r.App.Config.RabbitMqPort),
 	}
 	conn, err := amqp.Dial(uri.String())
-	if err != nil {
-		panic(err)
-	}
+	FailOnError(r.App.Logger, err)
+
 	r.Conn = conn
 	r.App.Logger.LogInfo("Start RabbitMQ Connection")
 }
@@ -54,9 +53,7 @@ func (r *ChannelRabbitMq) Start() {
 // Subscribe rabbitMQ channel
 func (r *ChannelRabbitMq) Subscribe() {
 	channel, err := r.Conn.Channel()
-	if err != nil {
-		panic(err)
-	}
+	FailOnError(r.App.Logger, err)
 
 	r.Channel = channel
 

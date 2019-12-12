@@ -80,6 +80,12 @@ func NewRouter(api *API) *Router {
 
 	r.Get("/", HomeController{API: api}.Index)
 
+	r.Route("/api/v1", func(r phi.Router) {
+		r.Route("/user", func(r phi.Router) {
+			r.Post("/sign_in", LoginController{API: api}.Create)
+		})
+	})
+
 	router.Server = &fasthttp.Server{
 		Handler:     r.ServeFastHTTP,
 		ReadTimeout: 10 * time.Second,

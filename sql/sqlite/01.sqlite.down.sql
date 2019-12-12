@@ -1,1 +1,1 @@
-DROP TABLE IF NOT EXISTS ra_migrations;
+DROP TABLE IF EXISTS ra_migrations;

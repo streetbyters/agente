@@ -21,7 +21,9 @@ import (
 	"flag"
 	"github.com/akdilsiz/agente/api"
 	"github.com/akdilsiz/agente/cmn"
+	"github.com/akdilsiz/agente/database"
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
 	"os"
 	"os/signal"
@@ -34,7 +36,13 @@ import (
 var configFile string
 
 // devMode Development mode flag
-var devMode bool
+var devMode string
+
+// migrate
+var migrate bool
+
+// reset
+var reset bool
 
 func main() {
 	ch := make(chan os.Signal)
@@ -44,8 +52,10 @@ func main() {
 	var dbPath string
 	var appPath string
 
-	flag.BoolVar(&devMode, "dev", false, "Development Mode")
-	flag.StringVar(&configFile, "config", "agente.dev.env", "Config file")
+	flag.StringVar(&devMode, "mode", "dev", "Development Mode")
+	flag.BoolVar(&migrate, "migrate", false, "Run migrations")
+	flag.BoolVar(&reset, "reset", false, "Reset database")
+	flag.StringVar(&configFile, "config", "", "Config file")
 	flag.StringVar(&dbPath, "dbPath", "", "Database path")
 	flag.StringVar(&appPath, "appPath", "", "Application path")
 	flag.Parse()
@@ -55,8 +65,8 @@ func main() {
 	}
 	dirs := strings.SplitAfter(appPath, "agente")
 
-	if devMode {
-		mode = model.Dev
+	if devMode == "dev" || devMode == "test" {
+		mode = model.MODE(devMode)
 		appPath = path.Join(dirs[0])
 		dbPath = appPath
 	} else {
@@ -65,14 +75,16 @@ func main() {
 		dbPath = path.Join("var", "lib", "tc-agente")
 	}
 
-	logger := cmn.NewLogger(string(mode))
+	if configFile == "" {
+		configFile = "agente."+string(mode)+".env"
+	}
+
+	logger := utils.NewLogger(string(mode))
 
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
-	if err != nil {
-		panic(err)
-	}
+	cmn.FailOnError(logger, err)
 
 	config := &model.Config{
 		Path:         appPath,
@@ -117,21 +129,25 @@ func main() {
 		panic(errors.New("you can only work on one queue(redis or rabbitMQ) system"))
 	}
 
-	database, err := cmn.NewDB(config, logger)
-	if err != nil {
-		logger.Panic().Err(err)
-	}
+	db, err := database.NewDB(config)
+	cmn.FailOnError(logger, err)
+	db.Logger = logger
 
 	newApp := cmn.NewApp(config, logger)
 	newApp.Channel = ch
-	newApp.Database = database
+	newApp.Database = db
 	newApp.Mode = mode
+
+	if migrate {
+		db.Reset = reset
+		database.InstallDB(db)
+		return
+	}
 
 	newAPI := api.NewAPI(newApp)
 	go func() {
-		if err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr); err != nil {
-			panic(err)
-		}
+		err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr)
+		cmn.FailOnError(logger, err)
 	}()
 
 	<-newApp.Channel
