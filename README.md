@@ -35,8 +35,7 @@ Supported from **PostgreSQL** and **MySQL**.
 
 ## Development
 ```shell script
-git clone https://github.com/akdilsiz/agente
-git checkout develop
+git clone -b develop https://github.com/akdilsiz/agente
 
 go mod vendor
 
@@ -48,6 +47,10 @@ go run ./cmd -mode dev
 go run ./cmd -mode test -migrate -reset
 go run ./cmd -mode test
 ```
+
+## Build
+We will release firstly Agente for Linux environment.\
+[See detail](docs/build.md)
 
 ## Contribution
 I would like to accept any contributions to make Agente better and feature rich. So feel free to contribute your features(i.e. more 3rd-party(version control, CI, database, queuing etc.) tools), improvements and fixes.\
