@@ -276,6 +276,15 @@ func Test_InstallDB(t *testing.T) {
 	if res.Error != nil {
 		t.Fatal(err)
 	}
+	data, err = ioutil.ReadFile(filepath.Join(config.DBPath, "sql", "postgres", "03.create_user_passphrases.down.sql"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res = database.Query(string(data))
+	if res.Error != nil {
+		t.Fatal(err)
+	}
 
 	res = database.Query("delete from " + string(tMigration) + " where id > 0")
 
