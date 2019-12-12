@@ -27,7 +27,7 @@ This project currently maintained by **[@TransferChain](https://github.com/Trans
  - [ ] All relevant third-party system integrations (version control, CI, database, queuing etc.)
 
 ## Requirements
- - Go > 1.9
+ - Go > 1.11
  - Redis or RabbitMQ
 
 The application comes with **SQLite** as the database if you are going to run it in the local environment. \
