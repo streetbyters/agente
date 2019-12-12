@@ -33,7 +33,7 @@ notifications:
 
 before_script:
   - psql -c "create user agente login password "123456"'
-  - psql -c "create database agente;" -U postgres
+  - psql -c "create database agente_test owner agente;" -U postgres
 
 script:
   - go run ./cmd -mode test -migrate -reset

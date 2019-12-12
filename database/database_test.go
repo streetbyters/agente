@@ -246,7 +246,7 @@ func Test_InstallDB(t *testing.T) {
 		DBPath: appPath,
 		Mode:   model.Test,
 		DB:     model.Postgres,
-		DBName: "agente",
+		DBName: "agente_test",
 		DBHost: "127.0.0.1",
 		DBPort: 5432,
 		DBUser: "agente",
