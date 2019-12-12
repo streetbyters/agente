@@ -37,11 +37,7 @@ func GetChanges(m interface{}, c interface{}, typs ...string) ([]Change, []strin
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		if field.Name != "DBInterface" {
-			if typ == "insert" && field.Name != "Id" {
-				changes, keys, namedParams = getChanges(typ, t2, field, values, values2, changes, keys, namedParams)
-			} else if typ != "insert" && field.Name != "Id" {
-				changes, keys, namedParams = getChanges(typ, t2, field, values, values2, changes, keys, namedParams)
-			}
+			changes, keys, namedParams = getChanges(typ, t2, field, values, values2, changes, keys, namedParams)
 		}
 	}
 
@@ -54,15 +50,17 @@ func GetChanges(m interface{}, c interface{}, typs ...string) ([]Change, []strin
 	return changes, keys, namedParams
 }
 
-func getChanges(typ string,
-	t2 reflect.Type,
-	field reflect.StructField,
-	values reflect.Value,
-	values2 reflect.Value,
-	changes []Change,
-	keys []string,
-	namedParams map[string]interface{}) ([]Change, []string, map[string]interface{}) {
-	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" {
+func getChanges(args ...interface{}) ([]Change, []string, map[string]interface{}) {
+	typ := args[0].(string)
+	t2 := args[1].(reflect.Type)
+	field := args[2].(reflect.StructField)
+	values := args[3].(reflect.Value)
+	values2 := args[4].(reflect.Value)
+	changes := args[5].([]Change)
+	keys := args[6].([]string)
+	namedParams := args[7].(map[string]interface{})
+
+	if field2, ok := t2.FieldByName(field.Name); ok && field2.Tag.Get("db") != "" && field.Name != "ID" {
 		var change Change
 
 		val := values.FieldByName(field.Name)

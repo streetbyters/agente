@@ -244,8 +244,7 @@ func migrationFiles(db *Database, typ string) []sqlS {
 }
 
 func migrationUp(db *Database) error {
-	var err error
-	err = baseMigrations(db)
+	err := baseMigrations(db)
 	err = newMigrations(db)
 
 	return err
@@ -460,15 +459,16 @@ func (d *Database) query(query string, target DBInterface, params ...interface{}
 	return result
 }
 
+// QueryRow database row query builder with target model
 func (d *Database) QueryRowWithModel(query string, target interface{}, params ...interface{}) Result {
 	return d.queryRow(query, target, params...)
 }
 
+// QueryRow database row query builder
 func (d *Database) QueryRow(query string, params ...interface{}) Result {
 	return d.queryRow(query, nil, params...)
 }
 
-// QueryRow database row query builder
 func (d *Database) queryRow(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
 
