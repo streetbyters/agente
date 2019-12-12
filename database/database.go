@@ -179,32 +179,38 @@ func DropDB(database *Database) error {
 func InstallDB(database *Database) error {
 	var err error
 
+	database.reset()
 	switch database.Type {
-	case model.SQLite:
-		if database.Reset {
-			database.DB.Exec("PRAGMA writable_schema = 1;")
-			database.DB.Exec("delete from sqlite_master where type in ('table', 'index', 'trigger');")
-			database.DB.Exec("PRAGMA writable_schema = 0;")
-			database.DB.Exec("VACUUM;")
-		}
-		err = migrationUp(database)
-		break
-	case model.Postgres:
-		if database.Reset {
-			database.DB.Exec("DROP SCHEMA public CASCADE;")
-			database.DB.Exec("CREATE SCHEMA public;")
-			database.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
-			database.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
-		}
-
-		err = migrationUp(database)
-		break
-	case model.Mysql:
+	case model.SQLite, model.Postgres, model.Mysql:
 		err = migrationUp(database)
 		break
 	}
 
 	return err
+}
+
+func (d *Database) reset() {
+	switch d.Type {
+	case model.SQLite:
+		if d.Reset {
+			d.DB.Exec("PRAGMA writable_schema = 1;")
+			d.DB.Exec("delete from sqlite_master where type in ('table', 'index', 'trigger');")
+			d.DB.Exec("PRAGMA writable_schema = 0;")
+			d.DB.Exec("VACUUM;")
+		}
+		break
+	case model.Postgres:
+		if d.Reset {
+			d.DB.Exec("DROP SCHEMA public CASCADE;")
+			d.DB.Exec("CREATE SCHEMA public;")
+			d.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
+			d.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+		}
+		break
+	case model.Mysql:
+
+		break
+	}
 }
 
 type sqlS struct {
@@ -218,7 +224,7 @@ func migrationFiles(db *Database, typ string) []sqlS {
 
 	var files []string
 
-	files, _ = filepath.Glob(filepath.Join(db.Config.DBPath, "sql", string(db.Config.DB), "[0-9]*.*."+typ+".sql"))
+	files, _ = filepath.Glob(filepath.Join(db.Config.DBPath, "sql", string(db.Config.DB), "[0-9]*.[a-zA-Z_]*."+typ+".sql"))
 
 	for _, f := range files {
 		fileName := strings.Split(f, "/")[len(strings.Split(f, "/"))-1]
@@ -239,38 +245,45 @@ func migrationFiles(db *Database, typ string) []sqlS {
 
 func migrationUp(db *Database) error {
 	var err error
-	result := Result{}
+	err = baseMigrations(db)
+	err = newMigrations(db)
+
+	return err
+}
+
+func baseMigrations(db *Database) error {
+	var err error
 	files := migrationFiles(db, "up")
 
 	_, err = db.DB.Queryx("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 	if err != nil {
 		if  int(dbError(db, err)) == int(TableNotFound) {
 			err = nil
-			for _, f := range files {
-				switch f.Name {
-				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
-					_, err = db.DB.Exec(f.Data)
-					break
-				}
-			}
 			tx, _ := db.DB.Beginx()
 			for _, f := range files {
 				switch f.Name {
 				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+					_, err = tx.Exec(f.Data)
 					break
-				default:
-					_, err = db.DB.Exec(f.Data)
-					if err != nil {
-						err = tx.Rollback()
-						break
-					}
-					err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
-						"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
-					if err == nil {
-						db.Logger.LogInfo("Migrate: " + f.Name)
-					}
 				}
 			}
+			//for _, f := range files {
+			//	switch f.Name {
+			//	case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+			//		break
+			//	default:
+			//		_, err = db.DB.Exec(f.Data)
+			//		if err != nil {
+			//			err = tx.Rollback()
+			//			break
+			//		}
+			//		err = tx.QueryRowx("INSERT INTO " + string(tMigration) + " (" +
+			//			"number, name) VALUES ($1, $2)", f.Number, f.Name).Err()
+			//		if err == nil {
+			//			db.Logger.LogInfo("Migrate: " + f.Name)
+			//		}
+			//	}
+			//}
 
 			if err != nil {
 				tx.Rollback()
@@ -282,6 +295,12 @@ func migrationUp(db *Database) error {
 		return nil
 	}
 
+	return err
+}
+
+func newMigrations(db *Database) error {
+	var err error
+	result := Result{}
 	result = db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
 	var lastMigration []interface{}
 	if len(result.Rows) > 0 {
@@ -289,12 +308,11 @@ func migrationUp(db *Database) error {
 	}
 
 	tx, err := db.DB.Beginx()
-	files = migrationFiles(db, "up")
+	files := migrationFiles(db, "up")
 
 	for _, f := range files {
 		switch f.Name {
 		case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
-
 			break
 		default:
 			if len(lastMigration) > 0 {
@@ -396,8 +414,17 @@ func (d *Database) commit() *Database {
 	return d
 }
 
+// QueryWithModel database query builder with given model
+func (d *Database) QueryWithModel(query string, target DBInterface, params ...interface{}) Result {
+	return d.query(query, target, params...)
+}
+
 // Query database query builder
 func (d *Database) Query(query string, params ...interface{}) Result {
+	return d.query(query, nil, params...)
+}
+
+func (d *Database) query(query string, target DBInterface, params ...interface{}) Result {
 	result := Result{}
 
 	if d.Error != nil {
@@ -422,29 +449,49 @@ func (d *Database) Query(query string, params ...interface{}) Result {
 	}
 
 	for rows.Next() {
-		result.Rows, result.Error = rows.SliceScan()
+		if target != nil {
+			result.Error = rows.StructScan(&target)
+		} else {
+			result.Rows, result.Error = rows.SliceScan()
+		}
 	}
 	defer rows.Close()
 
 	return result
 }
 
-// QueryRow database row query builder
+func (d *Database) QueryRowWithModel(query string, target interface{}, params ...interface{}) Result {
+	return d.queryRow(query, target, params...)
+}
+
 func (d *Database) QueryRow(query string, params ...interface{}) Result {
+	return d.queryRow(query, nil, params...)
+}
+
+// QueryRow database row query builder
+func (d *Database) queryRow(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
 
-	var r interface{}
 	var err error
+	var r interface{}
+	var row *sqlx.Row
+
 	if d.Tx != nil {
-		err = d.Tx.QueryRowx(query, params...).Scan(&r)
+		row = d.Tx.QueryRowx(query, params...)
 	} else {
-		err = d.DB.QueryRowx(query, params...).Scan(&r)
+		row = d.DB.QueryRowx(query, params...)
 	}
+
+	if target != nil {
+		err = row.StructScan(target)
+	} else {
+		err = row.StructScan(r)
+	}
+
 	if err != nil {
 		d.rollback()
 		result.Error = err
 	}
-	result.Rows = append(result.Rows, r)
 
 	return result
 }

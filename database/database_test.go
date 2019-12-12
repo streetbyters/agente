@@ -202,6 +202,7 @@ func Test_InstallDB(t *testing.T) {
 		t.Fatal(err)
 	}
 	database.Logger = logger
+	database.Reset = true
 	err = DropDB(database)
 	if err != nil {
 		t.Fatal(err)
@@ -231,6 +232,7 @@ func Test_InstallDB(t *testing.T) {
 		t.Fatal(err)
 	}
 	database.Logger = logger
+	database.Reset = true
 	DropDB(database)
 
 	err = InstallDB(database)
