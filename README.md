@@ -13,7 +13,7 @@
 
 Distributed simple and robust release management and system monitoring system.
 
-This project currently maintained by **@TransferChain**
+This project currently maintained by **[@TransferChain](https://github.com/TransferChain)**
 
 ***This project on going work.*
 
