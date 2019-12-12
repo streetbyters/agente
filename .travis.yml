@@ -10,12 +10,16 @@ git:
   depth: 1
 
 addons:
+  postgresql: "11"
   apt:
     packages:
       - rabbitmq-server
+      - postgresql-11
+      - postgresql-client-11
 
 services:
   - rabbitmq
+  - postgresql
 
 before_install:
   - sudo rabbitmqctl add_user local local
@@ -26,6 +30,10 @@ before_install:
 
 notifications:
   email: false
+
+before_script:
+  - psql -c "create user agente login password "123456"'
+  - psql -c "create database agente;" -U postgres
 
 script:
   - go run ./cmd -mode test -migrate -reset
