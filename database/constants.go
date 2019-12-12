@@ -24,18 +24,18 @@ type Violation string
 
 const (
 	// UniqueViolation sql unique violation code
-	UniqueViolation 	Postgres = "23505"
+	UniqueViolation Postgres = "23505"
 	// ForeignKeyViolation sql foreign key violation code
 	ForeignKeyViolation Postgres = "23503"
 	// NotNullViolation sql not null violation code
-	NotNullViolation 	Postgres = "23502"
+	NotNullViolation Postgres = "23502"
 )
 
 const (
 	// UniqueError unique violation error string
-	UniqueError 	Violation = "has been already taken"
+	UniqueError Violation = "has been already taken"
 	// NotExistsError not exists violation error string
-	NotExistsError 	Violation = "does not exists"
+	NotExistsError Violation = "does not exists"
 	// NotNullError not null violation error string
-	NotNullError	Violation = "is not null"
+	NotNullError Violation = "is not null"
 )

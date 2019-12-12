@@ -12,8 +12,8 @@ var validate = validator.New()
 
 // Tag error constraint structure
 type Tag struct {
-	Name		string
-	Constraint	string
+	Name       string
+	Constraint string
 }
 
 // ValidateStruct struct validator
@@ -92,4 +92,3 @@ func constraintErrors(field reflect.StructField, dbError *pq.Error, tags []Tag, 
 
 	return errs
 }
-

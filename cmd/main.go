@@ -76,7 +76,7 @@ func main() {
 	}
 
 	if configFile == "" {
-		configFile = "agente."+string(mode)+".env"
+		configFile = "agente." + string(mode) + ".env"
 	}
 
 	logger := utils.NewLogger(string(mode))

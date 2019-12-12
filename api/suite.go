@@ -37,7 +37,7 @@ import (
 type Suite struct {
 	suite.Suite
 	API  *API
-	Auth struct{
+	Auth struct {
 		User  interface{}
 		Token string
 	}
