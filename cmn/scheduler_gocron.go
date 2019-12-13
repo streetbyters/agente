@@ -16,54 +16,54 @@
 
 package cmn
 
-import "github.com/bamzi/jobrunner"
+import "github.com/jasonlvhit/gocron"
 
-// SchedulerJobRunner jobrunner package adapter
-type SchedulerJobRunner struct {
+type SchedulerGoCron struct {
 	SchedulerInterface `json:"-"`
 	*Scheduler
+	GoCron *gocron.Scheduler
 }
 
-// Up jobruner start
-func (s *SchedulerJobRunner) Up() {
-	jobrunner.Start()
+// Up gocron scheduler
+func (s *SchedulerGoCron) Up() {
+	s.GoCron = gocron.NewScheduler()
 }
 
-// Start jobrunner job
-func (s *SchedulerJobRunner) Start() {
-
-}
-
-// List jobrunner jobs
-func (s *SchedulerJobRunner) List() {
+// Start gocron
+func (s *SchedulerGoCron) Start() {
 
 }
 
-// Add jobrunner job
-func (s *SchedulerJobRunner) Add(args ...interface{}) {
+// List gcron jobs
+func (s *SchedulerGoCron) List() {
 
 }
 
-// Update jobrunner job
-func (s *SchedulerJobRunner) Update(args ...interface{}) {
+// Add gcron job
+func (s *SchedulerGoCron) Add(args ...interface{}) {
 
 }
 
-// Delete jobrunner job
-func (s *SchedulerJobRunner) Delete(args ...interface{}) {
+// Update gocron job
+func (s *SchedulerGoCron) Update(args ...interface{}) {
 
 }
 
-// Run jobrunner job
-func (s *SchedulerJobRunner) Run() {
+// Delete gocron job
+func (s *SchedulerGoCron) Delete(args ...interface{}) {
 
 }
 
-// Stop jobrunner job
-func (s *SchedulerJobRunner) Stop() {
+// Run gocron job
+func (s *SchedulerGoCron) Run() {
 
 }
 
-func (s *SchedulerJobRunner) Down() {
-	jobrunner.Stop()
+// Stop gocron job
+func (s *SchedulerGoCron) Stop() {
+
+}
+
+func (s *SchedulerGoCron) Down() {
+	s.GoCron.Clear()
 }

@@ -17,6 +17,7 @@ require (
 	github.com/gobuffalo/httptest v1.4.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
+	github.com/jasonlvhit/gocron v0.0.0-20191125235832-30e323a962ed // indirect
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
