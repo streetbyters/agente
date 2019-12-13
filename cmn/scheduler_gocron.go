@@ -18,6 +18,7 @@ package cmn
 
 import "github.com/jasonlvhit/gocron"
 
+// SchedulerGoCron gocron package adapter
 type SchedulerGoCron struct {
 	SchedulerInterface `json:"-"`
 	*Scheduler
@@ -64,6 +65,8 @@ func (s *SchedulerGoCron) Stop() {
 
 }
 
+// Down gocron kill
 func (s *SchedulerGoCron) Down() {
 	s.GoCron.Clear()
+	s.GoCron = nil
 }

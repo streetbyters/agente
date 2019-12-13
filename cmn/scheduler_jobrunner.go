@@ -64,6 +64,7 @@ func (s *SchedulerJobRunner) Stop() {
 
 }
 
+// Down jobrunner kill
 func (s *SchedulerJobRunner) Down() {
 	jobrunner.Stop()
 }
