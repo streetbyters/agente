@@ -563,7 +563,7 @@ func StringInSlice(a string, list []string) bool {
 	return false
 }
 
-// Paskey generate random passkey
+// Passkey generate random passkey
 func Passkey() string {
 	var p []byte
 	for i := 0; i < 9; i ++ {
