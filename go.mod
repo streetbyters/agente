@@ -16,6 +16,7 @@ require (
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/httptest v1.4.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
+	github.com/google/uuid v1.1.1 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/jasonlvhit/gocron v0.0.0-20191125235832-30e323a962ed // indirect
 	github.com/jmoiron/sqlx v1.2.0
