@@ -19,6 +19,7 @@ package api
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
@@ -83,6 +84,7 @@ func NewRouter(api *API) *Router {
 	r.Route("/api/v1", func(r phi.Router) {
 		r.Route("/user", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
+			r.Post("/token", TokenController{API: api}.Create)
 		})
 	})
 
@@ -126,6 +128,17 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
+				var err error
+				switch x := rvr.(type) {
+				case string:
+					err = errors.New(x)
+				case error:
+					err = x
+				default:
+					err = errors.New("unknown panic")
+				}
+
+				r.API.App.Logger.LogError(err, "router recover")
 				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors: nil,
 					Detail: http.StatusText(http.StatusInternalServerError),

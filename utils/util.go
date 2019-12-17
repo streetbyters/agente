@@ -563,7 +563,7 @@ func StringInSlice(a string, list []string) bool {
 	return false
 }
 
-// Passkey generate random passkey
+// Passkey generates a string passkey with an absolute length of 192.
 func Passkey() string {
 	var p []byte
 	for i := 0; i < 9; i ++ {

@@ -6,6 +6,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/bamzi/jobrunner v1.0.0
 	github.com/cyucelen/marker v0.0.0-20191104160756-7ce950124633 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/fate-lovely/phi v0.0.0-20171026043140-ee6510b82038
 	github.com/fatih/structs v1.1.0 // indirect
@@ -16,9 +17,9 @@ require (
 	github.com/go-sql-driver/mysql v1.4.0
 	github.com/gobuffalo/httptest v1.4.0 // indirect
 	github.com/google/go-querystring v1.0.0 // indirect
-	github.com/google/uuid v1.1.1 // indirect
+	github.com/google/uuid v1.1.1
 	github.com/imkira/go-interpol v1.1.0 // indirect
-	github.com/jasonlvhit/gocron v0.0.0-20191125235832-30e323a962ed // indirect
+	github.com/jasonlvhit/gocron v0.0.0-20191125235832-30e323a962ed
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect

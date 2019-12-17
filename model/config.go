@@ -21,6 +21,7 @@ type Config struct {
 	Path         string `json:"path"`
 	Mode         MODE   `json:"mode"`
 	Port         int    `json:"port"`
+	SecretKey    string `json:"secret_key"`
 	DB           DB     `json:"db"`
 	DBPath       string `json:"db_path"`
 	DBName       string `json:"db_name"`

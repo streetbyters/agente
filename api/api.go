@@ -19,7 +19,6 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
@@ -28,14 +27,19 @@ import (
 
 // API rest api structure
 type API struct {
-	App    *cmn.App
-	Router *Router
+	App     *cmn.App
+	Router  *Router
+	JWTAuth *JWTAuth
+	Auth    struct {
+		ID int64
+	}
 }
 
 // NewAPI building api
 func NewAPI(app *cmn.App) *API {
 	api := &API{App: app}
 	api.Router = NewRouter(api)
+	api.JWTAuth = NewJWTAuth(api)
 
 	return api
 }
@@ -53,7 +57,6 @@ func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
 
 // JSONBody parse given model request body
 func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
-	fmt.Println(string(ctx.PostBody()))
 	r := bytes.NewReader(ctx.PostBody())
 	json.NewDecoder(r).Decode(&model)
 }

@@ -18,37 +18,29 @@ package model
 
 import (
 	"github.com/akdilsiz/agente/database"
-	"github.com/akdilsiz/agente/utils"
 	"time"
 )
 
-// User Authentication/authorization base database model
-type User struct {
+// UserPassphraseInvalidation authentication access token invalidation struct
+type UserPassphraseInvalidation struct {
 	database.DBInterface `json:"-"`
-	ID                   int64     `db:"id" json:"id"`
-	Username             string    `db:"username" json:"username" validate:"required"`
-	PasswordDigest       string    `db:"password_digest" json:"-"`
-	Password             string    `db:"-" json:"password" validate:"required"`
-	Email                string    `db:"email" json:"email" validate:"required,email"`
-	IsActive             bool      `db:"is_active" json:"is_active"`
+	PassphraseId         int64     `db:"passphrase_id" json:"passphrase_id" foreign:"fk_ra_user_passphrases_passphrase_id" unique:"ra_user_passphrase_invalidations_pkey"`
+	SourceUserId         int64     `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_user_passphrases_source_user_id"`
 	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            time.Time `db:"updated_at" json:"updated_at"`
 }
 
-// NewUser user generate with default data
-func NewUser(pwd string) *User {
-	return &User{
-		PasswordDigest: utils.HashPassword(pwd, 11),
-		IsActive:       true,
-	}
+// NewUserPassphraseInvalidation generate authentication access token invalidation
+func NewUserPassphraseInvalidation() *UserPassphraseInvalidation {
+	return &UserPassphraseInvalidation{}
 }
 
-// TableName user database table name
-func (d User) TableName() string {
-	return "ra_users"
+// TableName user_passphrase_invalidation database table name
+func (d UserPassphraseInvalidation) TableName() string {
+	return "ra_user_passphrase_invalidations"
 }
 
-// ToJSON User database model to json string
-func (d User) ToJSON() string {
+func (d UserPassphraseInvalidation) ToJSON() string {
 	return database.ToJSON(d)
 }
+
+

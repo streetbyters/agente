@@ -18,6 +18,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/akdilsiz/agente/model"
@@ -27,7 +28,6 @@ import (
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
 	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // SQLite Driver
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -74,6 +74,15 @@ type Database struct {
 type DBInterface interface {
 	TableName() string
 	ToJSON() string
+}
+
+// ToJSON Converting models belonging to DBInterface to json string
+func ToJSON(model DBInterface) string {
+	b, err := json.Marshal(model)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 // Tx transaction for database queries
@@ -498,10 +507,10 @@ func (t *Tx) Select(table string, whereClause string) Result {
 }
 
 // Insert query builder by database type
-func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) (sql.Result, error) {
+func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
 	_, c1, namedParams := GetChanges(m, data, "insert")
-	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
 
+	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
 	if d.Type == model.SQLite {
 		_s := strings.Split(str, "returning")
 		str = _s[0]
@@ -510,15 +519,46 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) (sql.
 	query, args, _ := sqlx.Named(str, namedParams)
 	_, args, _ = sqlx.In(query, args...)
 
-	r, e := d.DB.Exec(str, args...)
-
-	if e == nil {
-		id, _ := r.LastInsertId()
-		reflect.ValueOf(m).Elem().FieldByName("ID").SetInt(id)
+	// TODO: check it :)
+	if len(keys) > 0 && d.Type != model.SQLite {
+		return d.DB.QueryRowx(query, args...).StructScan(data)
 	}
 
-	return r, e
+	row, err := d.DB.Exec(str, args...)
+	if err != nil {
+		return err
+	}
+
+	id, _ := row.LastInsertId()
+
+	if len(keys) > 0 && d.Type == model.SQLite {
+		result := d.QueryRowWithModel("select "+strings.Join(keys, ",")+
+			" from "+m.TableName()+
+			" where id = $1", data, id)
+
+		return result.Error
+	}
+
+	if reflect.ValueOf(data).Elem().FieldByName("ID").CanSet() {
+		reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
+	}
+
+	return nil
 }
+
+//func (d *Database) returning(keys ...interface{}) ([]string, []interface{}) {
+//	var s []string
+//	var k []interface{}
+//	for i, key := range keys {
+//		if i%2 == 0 {
+//			s = append(s, key.(string))
+//		} else {
+//			k = append(k, key)
+//		}
+//	}
+//
+//	return s, k
+//}
 
 // Update query builder by database type
 func (t *Tx) Update(table string, whereClause string, data interface{}) Result {
