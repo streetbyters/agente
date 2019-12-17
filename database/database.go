@@ -31,6 +31,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -247,6 +248,12 @@ func migrationFiles(db *Database, typ string) []sqlS {
 				Data:   string(data),
 			})
 		}
+	}
+
+	if typ == "down" {
+		sort.Slice(sqls, func(i, j int) bool {
+			return sqls[i].Number > sqls[j].Number
+		})
 	}
 
 	return sqls

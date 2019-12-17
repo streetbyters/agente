@@ -274,7 +274,7 @@ func Test_InstallDB(t *testing.T) {
 
 	res := database.Query(string(data))
 	if res.Error != nil {
-		t.Fatal(err)
+		t.Fatal(res.Error)
 	}
 	data, err = ioutil.ReadFile(filepath.Join(config.DBPath, "sql", "postgres", "03.create_user_passphrases.down.sql"))
 	if err != nil {
