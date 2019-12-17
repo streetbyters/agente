@@ -16,7 +16,7 @@ CREATE TABLE  ra_jobs (
     source_user_id integer null,
     inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
+    CONSTRAINT fk_ra_jobs_source_user_id FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
 );
 
 CREATE INDEX  ra_jobs_source_user_id_index ON ra_jobs(source_user_id);
@@ -37,8 +37,8 @@ CREATE TABLE  ra_job_details (
 
     inserted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    FOREIGN KEY (job_id) REFERENCES ra_jobs(id) ON UPDATE cascade  ON DELETE cascade,
-    FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
+    CONSTRAINT fk_ra_job_details_job_id FOREIGN KEY (job_id) REFERENCES ra_jobs(id) ON UPDATE cascade  ON DELETE cascade,
+    CONSTRAINT  fk_ra_job_details_source_user_id FOREIGN KEY (source_user_id) REFERENCES ra_users(id) ON UPDATE cascade ON DELETE SET NULL
 );
 
 CREATE INDEX  ra_job_details_job_id_index ON ra_job_details(job_id);

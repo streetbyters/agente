@@ -23,6 +23,7 @@ import (
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
 	"net/url"
+	"strconv"
 )
 
 // API rest api structure
@@ -38,8 +39,8 @@ type API struct {
 // NewAPI building api
 func NewAPI(app *cmn.App) *API {
 	api := &API{App: app}
-	api.Router = NewRouter(api)
 	api.JWTAuth = NewJWTAuth(api)
+	api.Router = NewRouter(api)
 
 	return api
 }
@@ -53,6 +54,31 @@ func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
 	}
 
 	return values
+}
+
+// Paginate request paginate build
+func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.Pagination, map[string]string, error) {
+	pagination := model.NewPagination()
+	queryParams := a.ParseQuery(ctx)
+
+	if val, ok := queryParams["limit"]; ok {
+		pagination.Limit, _ = strconv.Atoi(val)
+	}
+
+	if val, ok := queryParams["offset"]; ok {
+		pagination.Offset, _ = strconv.ParseInt(val, 10, 64)
+	}
+
+	if val, ok := queryParams["order_by"]; ok {
+		pagination.OrderBy = val
+	}
+
+	if val, ok := queryParams["order_field"]; ok {
+		pagination.OrderField = val
+	}
+
+	errs, err := pagination.Validate(orderFields...)
+	return pagination, errs, err
 }
 
 // JSONBody parse given model request body

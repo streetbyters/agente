@@ -18,37 +18,29 @@ package model
 
 import (
 	"github.com/akdilsiz/agente/database"
-	"github.com/akdilsiz/agente/utils"
 	"gopkg.in/guregu/null.v3/zero"
+	"time"
 )
 
-// User Authentication/authorization base database model
-type User struct {
+// Job user defined background job structure
+type Job struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
-	Username             string    `db:"username" json:"username" validate:"required"`
-	PasswordDigest       string    `db:"password_digest" json:"-"`
-	Password             string    `db:"-" json:"password" validate:"required"`
-	Email                string    `db:"email" json:"email" validate:"required,email"`
-	IsActive             bool      `db:"is_active" json:"is_active"`
-	InsertedAt           zero.Time `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            zero.Time `db:"updated_at" json:"updated_at"`
+	SourceUserId         zero.Int  `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_jobs_source_user_id"`
+	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
 
-// NewUser user generate with default data
-func NewUser(pwd string) *User {
-	return &User{
-		PasswordDigest: utils.HashPassword(pwd, 11),
-		IsActive:       true,
-	}
+// NewJob generate user defined background job
+func NewJob() *Job {
+	return &Job{}
 }
 
-// TableName user database table name
-func (d User) TableName() string {
-	return "ra_users"
+// TableName job database table name
+func (d Job) TableName() string {
+	return "ra_jobs"
 }
 
-// ToJSON User database model to json string
-func (d User) ToJSON() string {
+// ToJSON job structure to json string
+func (d Job) ToJSON() string {
 	return database.ToJSON(d)
 }

@@ -86,6 +86,12 @@ func NewRouter(api *API) *Router {
 			r.Post("/sign_in", LoginController{API: api}.Create)
 			r.Post("/token", TokenController{API: api}.Create)
 		})
+
+		r.With(api.JWTAuth.Verify).Group(func(r phi.Router) {
+			r.Route("/job", func(r phi.Router) {
+				r.Get("/", JobController{API: api}.Index)
+			})
+		})
 	})
 
 	router.Server = &fasthttp.Server{
@@ -128,6 +134,9 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
+				if r.API.App.Mode == model.Test {
+					panic(rvr)
+				}
 				var err error
 				switch x := rvr.(type) {
 				case string:

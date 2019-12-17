@@ -406,7 +406,7 @@ func (d *Database) commit() *Database {
 }
 
 // QueryWithModel database query builder with given model
-func (d *Database) QueryWithModel(query string, target DBInterface, params ...interface{}) Result {
+func (d *Database) QueryWithModel(query string, target interface{}, params ...interface{}) Result {
 	return d.query(query, target, params...)
 }
 
@@ -415,7 +415,7 @@ func (d *Database) Query(query string, params ...interface{}) Result {
 	return d.query(query, nil, params...)
 }
 
-func (d *Database) query(query string, target DBInterface, params ...interface{}) Result {
+func (d *Database) query(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
 
 	if d.Error != nil {
@@ -439,9 +439,20 @@ func (d *Database) query(query string, target DBInterface, params ...interface{}
 		return result
 	}
 
+	var arr reflect.Value
+	var v reflect.Value
+	if target != nil {
+		arr = reflect.ValueOf(target).Elem()
+		v = reflect.New(reflect.TypeOf(target).Elem().Elem())
+	}
+
 	for rows.Next() {
 		if target != nil {
-			result.Error = rows.StructScan(&target)
+			if err := rows.StructScan(v.Interface()); err != nil {
+				result.Error = err
+				return result
+			}
+			arr.Set(reflect.Append(arr, v.Elem()))
 		} else {
 			result.Rows, result.Error = rows.SliceScan()
 		}
@@ -523,7 +534,6 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 	if len(keys) > 0 && d.Type != model.SQLite {
 		return d.DB.QueryRowx(query, args...).StructScan(data)
 	}
-
 	row, err := d.DB.Exec(str, args...)
 	if err != nil {
 		return err
@@ -535,7 +545,6 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 		result := d.QueryRowWithModel("select "+strings.Join(keys, ",")+
 			" from "+m.TableName()+
 			" where id = $1", data, id)
-
 		return result.Error
 	}
 

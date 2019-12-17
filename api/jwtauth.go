@@ -44,7 +44,7 @@ func NewJWTAuth(api *API) *JWTAuth {
 }
 
 // Generate generate jwt token with mapClaims
-func (a *JWTAuth) Generate(args ...interface{}) (string, error) {
+func (a JWTAuth) Generate(args ...interface{}) (string, error) {
 	a.Expire = time.Now().UTC().Unix() + int64(time.Second*25)
 
 	claims := jwt.MapClaims{
@@ -63,7 +63,7 @@ func (a *JWTAuth) Generate(args ...interface{}) (string, error) {
 }
 
 // Parse token string parse mapClaims expire check
-func (a *JWTAuth) Parse(tokenString string) (map[string]interface{}, int) {
+func (a JWTAuth) Parse(tokenString string) (map[string]interface{}, int) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -77,7 +77,7 @@ func (a *JWTAuth) Parse(tokenString string) (map[string]interface{}, int) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		if time.Now().UTC().Unix() > claims["exp"].(int64) {
+		if time.Now().UTC().Unix() > int64(claims["exp"].(float64)) {
 			return map[string]interface{}{}, 0
 		}
 
@@ -88,7 +88,7 @@ func (a *JWTAuth) Parse(tokenString string) (map[string]interface{}, int) {
 }
 
 // Verify verify bearer token in requests
-func (a *JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
+func (a JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		h := ctx.Request.Header.Peek("authorization")
 
@@ -113,7 +113,7 @@ func (a *JWTAuth) Verify(next phi.HandlerFunc) phi.HandlerFunc {
 			}, fasthttp.StatusForbidden)
 			return
 		default:
-			a.API.Auth.ID = claims["id"].(int64)
+			a.API.Auth.ID = int64(claims["id"].(float64))
 
 			next(ctx)
 			break

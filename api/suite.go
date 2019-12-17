@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/database"
+	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
@@ -38,7 +39,7 @@ type Suite struct {
 	suite.Suite
 	API  *API
 	Auth struct {
-		User  interface{}
+		User  *model2.User
 		Token string
 	}
 }
@@ -102,6 +103,7 @@ func NewSuite() *Suite {
 	config := &model.Config{
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
+		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
 		DBPath:       dbPath,
 		DBName:       viper.GetString("DB_NAME"),
@@ -158,6 +160,23 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {}
+
+func UserAuth(s *Suite) {
+	user := model2.NewUser("1234")
+	user.Username = "testUser"
+	user.Email = "testUser@tecpor.com"
+	user.IsActive = true
+	userModel := new(model2.User)
+	err := s.API.App.Database.Insert(userModel, user,
+		"id, username, email, inserted_at, updated_at")
+	if err != nil {
+		panic(err)
+	}
+
+	token, _ := s.API.JWTAuth.Generate(user.ID)
+	s.Auth.Token = token
+	s.Auth.User = user
+}
 
 // request test request for api
 func (s *Suite) request(contentType ContentType, method Method, path string, body interface{}) *TestResponse {
