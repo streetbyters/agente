@@ -92,8 +92,10 @@ func NewRouter(api *API) *Router {
 			// Job Routes
 			r.Group(func(r phi.Router) {
 				r.Get("/job", JobController{API: api}.Index)
+				r.Post("/job", JobController{API: api}.Create)
 				r.Route("/job/{id}", func(r phi.Router) {
 					r.Get("/", JobController{API: api}.Show)
+					r.Delete("/", JobController{API: api}.Delete)
 				})
 			})
 		})
@@ -147,6 +149,10 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 						Errors: nil,
 						Detail: e.Error(),
 					}, e.Status)
+
+					defer func() {
+						r.API.App.Logger.LogError(e, "Pluggable error")
+					}()
 					return
 				case string:
 					err = errors.New(x)

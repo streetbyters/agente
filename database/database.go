@@ -75,7 +75,7 @@ type Database struct {
 }
 
 // Force raise panic database query result is nil
-func (d Database) Force() {
+func (d Database) Force() Database {
 	if d.Error != nil {
 		switch d.QueryType {
 		case "row":
@@ -88,6 +88,8 @@ func (d Database) Force() {
 	defer func() {
 		d.QueryType = ""
 	}()
+
+	return d
 }
 
 // DBInterface database model interface
@@ -120,7 +122,7 @@ type Result struct {
 
 // TODO: parameters check
 // Force raise panic database query result is nil
-func (r Result) Force() {
+func (r Result) Force() Result {
 	if r.Error != nil {
 		switch r.QueryType {
 		case "row":
@@ -131,6 +133,8 @@ func (r Result) Force() {
 	defer func() {
 		r.QueryType = ""
 	}()
+
+	return r
 }
 
 // NewDB building database
@@ -531,13 +535,15 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	if target != nil {
 		err = row.StructScan(target)
 	} else {
-		err = row.StructScan(r)
+		r, err = row.SliceScan()
 	}
 
 	if err != nil {
 		d.rollback()
 		result.Error = err
 	}
+
+	result.Rows = append(result.Rows, r)
 
 	return result
 }
@@ -617,15 +623,39 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 //}
 
 // Update query builder by database type
-func (t *Tx) Update(table string, whereClause string, data interface{}) Result {
+func (d *Database) Update(table string, whereClause string, data interface{}) Result {
 	result := Result{}
 
 	return result
 }
 
 // Delete query build by database type
-func (t *Tx) Delete(table Tables, whereClause string) Result {
+func (d *Database) Delete(table string, whereClause string, args ...interface{}) Result {
 	result := Result{}
+	d.QueryType = "row"
+
+	if d.Tx != nil {
+		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
+		result.Error = err
+		if err != nil {
+			return result
+		}
+
+		if i, _ := res.RowsAffected(); i <= 0 {
+			result.Error = errors.New("do not found row affected")
+		}
+
+		return result
+	}
+
+	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
+	result.Error = err
+	if err != nil {
+		return result
+	}
+	if i, _ := res.RowsAffected(); i <= 0 {
+		result.Error = errors.New("do not found row affected")
+	}
 
 	return result
 }

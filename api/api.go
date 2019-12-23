@@ -90,6 +90,8 @@ func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
 // JSONResponse building json response
 func (a *API) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
 	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJSON()))
+	if response != nil {
+		ctx.SetBody([]byte(response.ToJSON()))
+	}
 	ctx.SetStatusCode(status)
 }

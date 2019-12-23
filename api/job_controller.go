@@ -17,8 +17,10 @@
 package api
 
 import (
+	"fmt"
 	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
+	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 )
 
@@ -39,17 +41,55 @@ func (c JobController) Index(ctx *fasthttp.RequestCtx) {
 	job := model2.NewJob()
 	var jobs []model2.Job
 	c.App.Database.QueryWithModel("SELECT * FROM "+job.TableName()+" AS j"+
-		" ORDER BY "+paginate.OrderField+" "+paginate.OrderBy+
+		" ORDER BY $1 $2" +
 		" LIMIT $3 OFFSET $4",
 		&jobs,
+		paginate.OrderField,
+		paginate.OrderBy,
 		paginate.Limit,
 		paginate.Offset)
 
 	var count int64
-	err = c.App.Database.DB.Get(&count, "SELECT count(*) FROM "+job.TableName())
+	err = c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", job.TableName()))
 
 	c.JSONResponse(ctx, model.ResponseSuccess{
 		Data:       jobs,
 		TotalCount: count,
 	}, fasthttp.StatusOK)
+}
+
+func (c JobController) Show(ctx *fasthttp.RequestCtx) {
+	var job model2.Job
+	 c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", job.TableName()),
+		&job,
+		phi.URLParam(ctx, "id")).Force()
+
+	c.JSONResponse(ctx, model.ResponseSuccessOne{
+		Data: job,
+	}, fasthttp.StatusOK)
+}
+
+func (c JobController) Create(ctx *fasthttp.RequestCtx) {
+	job := model2.NewJob()
+	c.JSONBody(ctx, &job)
+
+	job.SourceUserId.SetValid(c.Auth.ID)
+
+	c.App.Database.Insert(new(model2.Job), job, "id", "inserted_at")
+
+	c.JSONResponse(ctx, model.ResponseSuccessOne{
+		Data: job,
+	}, fasthttp.StatusCreated)
+}
+
+func (c JobController) Delete(ctx *fasthttp.RequestCtx) {
+	id := phi.URLParam(ctx, "id")
+
+	job := model2.NewJob()
+	c.App.Database.QueryRow(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", job.TableName()),
+		id).Force()
+
+	c.App.Database.Delete(job.TableName(), "id = $1", id).Force()
+
+	c.JSONResponse(ctx, nil, fasthttp.StatusNoContent)
 }
