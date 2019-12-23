@@ -21,6 +21,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	errors2 "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
@@ -88,8 +89,12 @@ func NewRouter(api *API) *Router {
 		})
 
 		r.With(api.JWTAuth.Verify).Group(func(r phi.Router) {
-			r.Route("/job", func(r phi.Router) {
-				r.Get("/", JobController{API: api}.Index)
+			// Job Routes
+			r.Group(func(r phi.Router) {
+				r.Get("/job", JobController{API: api}.Index)
+				r.Route("/job/{id}", func(r phi.Router) {
+					r.Get("/", JobController{API: api}.Show)
+				})
 			})
 		})
 	})
@@ -134,17 +139,25 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
-				if r.API.App.Mode == model.Test {
-					panic(rvr)
-				}
 				var err error
 				switch x := rvr.(type) {
+				case *errors2.PluggableError:
+					e := rvr.(*errors2.PluggableError)
+					r.API.JSONResponse(ctx, model.ResponseError{
+						Errors: nil,
+						Detail: e.Error(),
+					}, e.Status)
+					return
 				case string:
 					err = errors.New(x)
 				case error:
 					err = x
 				default:
 					err = errors.New("unknown panic")
+				}
+
+				if r.API.App.Mode == model.Test {
+					panic(rvr)
 				}
 
 				r.API.App.Logger.LogError(err, "router recover")

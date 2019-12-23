@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
@@ -28,6 +29,7 @@ import (
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
 	"github.com/mattn/go-sqlite3"
+	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
@@ -62,13 +64,30 @@ const (
 
 // Database struct
 type Database struct {
-	Config *model.Config
-	Type   model.DB
-	DB     *sqlx.DB
-	Tx     *sqlx.Tx
-	Logger *utils.Logger
-	Error  error
-	Reset  bool
+	Config    *model.Config
+	Type      model.DB
+	DB        *sqlx.DB
+	Tx        *sqlx.Tx
+	Logger    *utils.Logger
+	Error     error
+	Reset     bool
+	QueryType string
+}
+
+// Force raise panic database query result is nil
+func (d Database) Force() {
+	if d.Error != nil {
+		switch d.QueryType {
+		case "row":
+			panic(pluggableError.New("not found", fasthttp.StatusNotFound))
+		case "insert", "update":
+			panic(pluggableError.New("incorrect given parameters", fasthttp.StatusUnprocessableEntity))
+		}
+	}
+
+	defer func() {
+		d.QueryType = ""
+	}()
 }
 
 // DBInterface database model interface
@@ -93,9 +112,25 @@ type Tx struct {
 
 // Result structure for database query results
 type Result struct {
-	Rows  []interface{}
-	Count int64
-	Error error
+	QueryType string
+	Rows      []interface{}
+	Count     int64
+	Error     error
+}
+
+// TODO: parameters check
+// Force raise panic database query result is nil
+func (r Result) Force() {
+	if r.Error != nil {
+		switch r.QueryType {
+		case "row":
+			panic(pluggableError.New("not found", fasthttp.StatusNotFound))
+		}
+	}
+
+	defer func() {
+		r.QueryType = ""
+	}()
 }
 
 // NewDB building database
@@ -481,6 +516,7 @@ func (d *Database) QueryRow(query string, params ...interface{}) Result {
 
 func (d *Database) queryRow(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
+	result.QueryType = "row"
 
 	var err error
 	var r interface{}
@@ -521,12 +557,16 @@ func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
 func (t *Tx) Select(table string, whereClause string) Result {
 	result := Result{}
 
+	result.QueryType = "row"
+
 	return result
 }
 
 // Insert query builder by database type
 func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
 	_, c1, namedParams := GetChanges(m, data, "insert")
+
+	d.QueryType = "insert"
 
 	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
 	if d.Type == model.SQLite {
