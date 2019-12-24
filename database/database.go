@@ -242,18 +242,27 @@ func (d *Database) reset() {
 	switch d.Type {
 	case model.SQLite:
 		if d.Reset {
-			d.DB.Exec("PRAGMA writable_schema = 1;")
-			d.DB.Exec("delete from sqlite_master where type in ('table', 'index', 'trigger');")
-			d.DB.Exec("PRAGMA writable_schema = 0;")
-			d.DB.Exec("VACUUM;")
+			files := migrationFiles(d, "down")
+			for _, f := range files {
+				if _, err := d.DB.Exec(f.Data); err != nil {
+					panic(err)
+				}
+			}
 		}
 		break
 	case model.Postgres:
 		if d.Reset {
-			d.DB.Exec("DROP SCHEMA public CASCADE;")
-			d.DB.Exec("CREATE SCHEMA public;")
-			d.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
-			d.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+			//d.DB.Exec("DROP SCHEMA public CASCADE;")
+			//d.DB.Exec("CREATE SCHEMA public;")
+			//d.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
+			//d.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+			//d.DB.Exec("")
+			files := migrationFiles(d, "down")
+			for _, f := range files {
+				if _, err := d.DB.Exec(f.Data); err != nil {
+					panic(err)
+				}
+			}
 		}
 		break
 	case model.Mysql:
@@ -299,10 +308,11 @@ func migrationFiles(db *Database, typ string) []sqlS {
 }
 
 func migrationUp(db *Database) error {
-	err := baseMigrations(db)
-	err = newMigrations(db)
+	if err := baseMigrations(db); err != nil {
+		return err
+	}
 
-	return err
+	return newMigrations(db)
 }
 
 func baseMigrations(db *Database) error {
