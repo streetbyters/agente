@@ -55,20 +55,11 @@ func (d UserPassphrase) PassphraseQuery(db *database.Database) string {
 	passphraseInvalidation := NewUserPassphraseInvalidation()
 	var query string
 	switch db.Type {
-	case model.SQLite:
-		query = "SELECT p.id, p.user_id, p.passphrase, p.inserted_at FROM " + d.TableName() + " AS p " +
-			"LEFT OUTER JOIN " + passphraseInvalidation.TableName() + " AS pi ON p.id = pi.passphrase_id " +
-			"WHERE pi.passphrase_id IS NULL AND p.passphrase = $1 AND " +
-			"p.inserted_at >= datetime('now', '-3 month')"
-		break
 	case model.Postgres:
 		query = "SELECT p.* FROM " + d.TableName() + " AS p " +
 			"LEFT OUTER JOIN " + passphraseInvalidation.TableName() + " AS pi ON p.id = pi.passphrase_id " +
 			"WHERE pi.passphrase_id IS NULL AND p.passphrase = $1 AND " +
 			"p.inserted_at >= (now() - interval '3 month')"
-		break
-	case model.Mysql:
-
 		break
 	}
 

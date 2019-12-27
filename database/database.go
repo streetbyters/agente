@@ -17,7 +17,6 @@
 package database
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,7 +27,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
-	"github.com/mattn/go-sqlite3"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"path/filepath"
@@ -143,23 +141,6 @@ func NewDB(config *model.Config) (*Database, error) {
 	database.Config = config
 
 	switch config.DB {
-	case model.SQLite:
-		connURL := fmt.Sprintf("file:%s?cache=shared&mode=rwc",
-			filepath.Join(config.DBPath, config.DBName))
-
-		var db *sqlx.DB
-		var db2 *sql.DB
-
-		db2, _ = sql.Open("sqlite3", connURL)
-		db = sqlx.NewDb(db2, "sqlite3")
-
-		if err := db.Ping(); err != nil {
-			return nil, err
-		}
-
-		database.Type = model.SQLite
-		database.DB = db
-		break
 	case model.Postgres:
 		connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 			config.DBHost,
@@ -181,27 +162,6 @@ func NewDB(config *model.Config) (*Database, error) {
 		database.Type = model.Postgres
 		database.DB = db
 		break
-	case model.Mysql:
-		connURL := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=%s",
-			config.DBUser,
-			config.DBPass,
-			config.DBHost,
-			config.DBPort,
-			config.DBName,
-			config.DBSsl)
-
-		db, _ := sqlx.Open("mysql", connURL)
-
-		if err := db.Ping(); err != nil {
-			return nil, err
-		}
-		db.SetMaxIdleConns(15)
-		db.SetMaxOpenConns(15)
-
-		database.Type = model.Mysql
-		database.DB = db
-
-		break
 	default:
 		return nil, errors.New("unsupported database")
 	}
@@ -213,7 +173,7 @@ func NewDB(config *model.Config) (*Database, error) {
 func DropDB(database *Database) error {
 	var err error
 	switch database.Type {
-	case model.SQLite, model.Postgres, model.Mysql:
+	case model.Postgres:
 		files := migrationFiles(database, "down")
 		for _, f := range files {
 			result := database.Query(f.Data)
@@ -230,7 +190,7 @@ func InstallDB(database *Database) error {
 
 	database.reset()
 	switch database.Type {
-	case model.SQLite, model.Postgres, model.Mysql:
+	case model.Postgres:
 		err = migrationUp(database)
 		break
 	}
@@ -240,16 +200,6 @@ func InstallDB(database *Database) error {
 
 func (d *Database) reset() {
 	switch d.Type {
-	case model.SQLite:
-		if d.Reset {
-			files := migrationFiles(d, "down")
-			for _, f := range files {
-				if _, err := d.DB.Exec(f.Data); err != nil {
-					panic(err)
-				}
-			}
-		}
-		break
 	case model.Postgres:
 		if d.Reset {
 			//d.DB.Exec("DROP SCHEMA public CASCADE;")
@@ -264,9 +214,6 @@ func (d *Database) reset() {
 				}
 			}
 		}
-		break
-	case model.Mysql:
-
 		break
 	}
 }
@@ -326,7 +273,7 @@ func baseMigrations(db *Database) error {
 			tx, _ := db.DB.Beginx()
 			for _, f := range files {
 				switch f.Name {
-				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+				case "01.postgres.up.sql":
 					_, err = tx.Exec(f.Data)
 					break
 				}
@@ -359,7 +306,7 @@ func newMigrations(db *Database) error {
 
 	for _, f := range files {
 		switch f.Name {
-		case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+		case "01.postgres.up.sql":
 			break
 		default:
 			if len(lastMigration) > 0 {
@@ -406,17 +353,6 @@ func dbError(db *Database, err error) Error {
 				return TableNotFound
 			default:
 				return OtherError
-			}
-		}
-		break
-	case model.Mysql:
-
-		break
-	case model.SQLite:
-		if SQLiteErr, ok := err.(sqlite3.Error); ok {
-			switch SQLiteErr.Code.Error() {
-			case "SQL logic error":
-				return InternalError
 			}
 		}
 		break
@@ -494,6 +430,7 @@ func (d *Database) query(query string, target interface{}, params ...interface{}
 		result.Error = err
 		return result
 	}
+	defer rows.Close()
 
 	var arr reflect.Value
 	var v reflect.Value
@@ -506,14 +443,22 @@ func (d *Database) query(query string, target interface{}, params ...interface{}
 		if target != nil {
 			if err := rows.StructScan(v.Interface()); err != nil {
 				result.Error = err
-				return result
+				break
 			}
 			arr.Set(reflect.Append(arr, v.Elem()))
 		} else {
-			result.Rows, result.Error = rows.SliceScan()
+			row, err := rows.SliceScan()
+			if err != nil {
+				result.Error = err
+				break
+			}
+			result.Rows = append(result.Rows, row)
 		}
 	}
-	defer rows.Close()
+	if err := rows.Err(); err != nil {
+		result.Error = err
+		return result
+	}
 
 	return result
 }
@@ -580,57 +525,45 @@ func (t *Tx) Select(table string, whereClause string) Result {
 
 // Insert query builder by database type
 func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
-	_, c1, namedParams := GetChanges(m, data, "insert")
+	_, c1, _ := GetChanges(m, data, "insert")
 
 	d.QueryType = "insert"
 
-	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
-	if d.Type == model.SQLite {
-		_s := strings.Split(str, "returning")
-		str = _s[0]
+	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ", "))
+
+	var stmt *sqlx.NamedStmt
+	var err error
+
+	if d.Tx != nil {
+		stmt, err = d.Tx.PrepareNamed(str)
+	} else {
+		stmt, err = d.DB.PrepareNamed(str)
 	}
 
-	query, args, _ := sqlx.Named(str, namedParams)
-	_, args, _ = sqlx.In(query, args...)
-
-	// TODO: check it :)
-	if len(keys) > 0 && d.Type != model.SQLite {
-		return d.DB.QueryRowx(query, args...).StructScan(data)
-	}
-	row, err := d.DB.Exec(str, args...)
 	if err != nil {
+		d.Error = err
 		return err
 	}
 
-	id, _ := row.LastInsertId()
-
-	if len(keys) > 0 && d.Type == model.SQLite {
-		result := d.QueryRowWithModel("select "+strings.Join(keys, ",")+
-			" from "+m.TableName()+
-			" where id = $1", data, id)
-		return result.Error
+	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+		return err
 	}
 
-	if reflect.ValueOf(data).Elem().FieldByName("ID").CanSet() {
-		reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
+	if err := stmt.Close(); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+
+		return err
 	}
 
 	return nil
 }
-
-//func (d *Database) returning(keys ...interface{}) ([]string, []interface{}) {
-//	var s []string
-//	var k []interface{}
-//	for i, key := range keys {
-//		if i%2 == 0 {
-//			s = append(s, key.(string))
-//		} else {
-//			k = append(k, key)
-//		}
-//	}
-//
-//	return s, k
-//}
 
 // Update query builder by database type
 func (d *Database) Update(table string, whereClause string, data interface{}) Result {

@@ -29,12 +29,14 @@ CREATE TABLE IF NOT EXISTS ra_job_details (
     job_id bigint not null,
     source_user_id bigint null,
 
+    code varchar(64) not null,
     name varchar(200) not null,
     type job default 'new_release',
     detail text null,
     before boolean default false,
+    before_jobs text null,
     after boolean default false,
-
+    after_jobs text null,
     script_file varchar(200) null,
     script text null,
 

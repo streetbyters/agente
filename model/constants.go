@@ -19,14 +19,8 @@ package model
 // DB enum type
 type DB string
 
-// SQLite DB Enum
-const SQLite DB = "sqlite"
-
 // Postgres Enum
 const Postgres DB = "postgres"
-
-// Mysql Enum
-const Mysql DB = "mysql"
 
 // Unknown enum. This enum just test mode
 const Unknown DB = "unknown"
