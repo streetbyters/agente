@@ -60,7 +60,7 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 
 	s.Equal(resp.Status, fasthttp.StatusNotFound)
 
-	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params"+
+	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params" +
 		"if user does not exists")
 }
 
@@ -82,7 +82,7 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 
 	s.Equal(resp.Status, fasthttp.StatusUnauthorized)
 
-	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params"+
+	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params" +
 		"if password does not match")
 }
 

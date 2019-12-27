@@ -42,5 +42,3 @@ func (d UserPassphraseInvalidation) TableName() string {
 func (d UserPassphraseInvalidation) ToJSON() string {
 	return database.ToJSON(d)
 }
-
-

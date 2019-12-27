@@ -99,7 +99,6 @@ func Test_NewDB(t *testing.T) {
 func Test_InstallDB(t *testing.T) {
 	appPath = dirs[0]
 
-
 	// Install postgres db
 	config := &model.Config{
 		DBPath: appPath,
