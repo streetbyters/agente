@@ -136,7 +136,7 @@ func (r Result) Force() Result {
 }
 
 // NewDB building database
-func NewDB(config *model.Config) (*Database, error) {
+func NewDB(config *model.Config, connURL ...string) (*Database, error) {
 	database := &Database{}
 	database.Config = config
 
