@@ -22,7 +22,7 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 	userModel.Email = "akdilsiz@tecpor.com"
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel)
+	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)
@@ -50,7 +50,7 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 	userModel.Email = "akdilsiz2@tecpor.com"
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel)
+	err := s.API.App.Database.Insert(user, userModel, "id")
 	s.Nil(err)
 
 	tokenRequest := model.TokenRequest{Passphrase: "userPassphrase.Passphrase"}
@@ -70,7 +70,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 	userModel.IsActive = false
 	user := new(model2.User)
 
-	err := s.API.App.Database.Insert(user, userModel)
+	err := s.API.App.Database.Insert(user, userModel, "id")
 	s.Nil(err)
 
 	userPassphrase := new(model2.UserPassphrase)

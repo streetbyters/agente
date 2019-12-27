@@ -23,7 +23,9 @@ import (
 
 // Job structure
 type Job struct {
-	App *App
+	App    *App
+	Name   string
+	Detail interface{}
 }
 
 // NewJob building job

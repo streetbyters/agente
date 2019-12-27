@@ -174,8 +174,9 @@ func UserAuth(s *Suite) {
 	user.Email = "testUser@tecpor.com"
 	user.IsActive = true
 	userModel := new(model2.User)
+
 	err := s.API.App.Database.Insert(userModel, user,
-		"id, username, email, inserted_at, updated_at")
+		"id", "inserted_at")
 	if err != nil {
 		panic(err)
 	}

@@ -93,9 +93,14 @@ func NewRouter(api *API) *Router {
 			r.Group(func(r phi.Router) {
 				r.Get("/job", JobController{API: api}.Index)
 				r.Post("/job", JobController{API: api}.Create)
-				r.Route("/job/{id}", func(r phi.Router) {
+				r.Route("/job/{jobID}", func(r phi.Router) {
 					r.Get("/", JobController{API: api}.Show)
 					r.Delete("/", JobController{API: api}.Delete)
+
+					// Detail Routes
+					r.Route("/detail", func(r phi.Router) {
+						r.Post("/", JobDetailController{API: api}.Create)
+					})
 				})
 			})
 		})

@@ -21,14 +21,17 @@ import (
 	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
+	"github.com/jmoiron/sqlx"
 	"github.com/valyala/fasthttp"
 )
 
+// JobController user defined background job api controller
 type JobController struct {
 	Controller
 	*API
 }
 
+// Index list all user defined background jobs
 func (c JobController) Index(ctx *fasthttp.RequestCtx) {
 	paginate, errs, err := c.Paginate(ctx, "id", "inserted_at")
 	if err != nil {
@@ -38,37 +41,74 @@ func (c JobController) Index(ctx *fasthttp.RequestCtx) {
 		}, fasthttp.StatusUnprocessableEntity)
 	}
 
+	jobDetail := model2.NewJobDetail()
 	job := model2.NewJob()
 	var jobs []model2.Job
-	c.App.Database.QueryWithModel("SELECT * FROM "+job.TableName()+" AS j"+
-		" ORDER BY $1 $2" +
-		" LIMIT $3 OFFSET $4",
+	res := c.App.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM "+job.TableName()+
+		" AS j ORDER BY j.%s %s", paginate.OrderField, paginate.OrderBy)+
+		" LIMIT $1 OFFSET $2",
 		&jobs,
-		paginate.OrderField,
-		paginate.OrderBy,
 		paginate.Limit,
 		paginate.Offset)
+
+	var jobIDs []int64
+	for _, j := range jobs {
+		jobIDs = append(jobIDs, j.ID)
+	}
+
+	var rJobs []model2.Job
+	jobDetails := make([]model2.JobDetail, 0)
+	details := make(map[int64]model2.JobDetail)
+	if res.Error == nil {
+		query, args, _ := sqlx.In(fmt.Sprintf("SELECT d.* FROM %s AS d"+
+			" LEFT OUTER JOIN %s AS d2 ON d.job_id = d2.job_id AND d.id < d2.id"+
+			" WHERE d2.id IS NULL AND d.job_id IN (?)", jobDetail.TableName(), jobDetail.TableName()),
+			jobIDs)
+		query = c.App.Database.DB.Rebind(query)
+		c.App.Database.QueryWithModel(query, &jobDetails, args...)
+
+		for _, d := range jobDetails {
+			details[d.JobID] = d
+		}
+
+		for _, j := range jobs {
+			if val, ok := details[j.ID]; ok {
+				j.Detail = &val
+			}
+			rJobs = append(rJobs, j)
+		}
+	}
 
 	var count int64
 	err = c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", job.TableName()))
 
 	c.JSONResponse(ctx, model.ResponseSuccess{
-		Data:       jobs,
+		Data:       rJobs,
 		TotalCount: count,
 	}, fasthttp.StatusOK)
 }
 
+// Show a user defined background job
 func (c JobController) Show(ctx *fasthttp.RequestCtx) {
 	var job model2.Job
-	 c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", job.TableName()),
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", job.TableName()),
 		&job,
-		phi.URLParam(ctx, "id")).Force()
+		phi.URLParam(ctx, "jobID")).Force()
+
+	detail := new(model2.JobDetail)
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT d.* FROM %s AS d"+
+		" LEFT OUTER JOIN %s AS d2 ON d.job_id = d2.job_id AND d.id < d2.id"+
+		" WHERE d2.id IS NULL AND d.job_id = $1", detail.TableName(), detail.TableName()),
+		detail, job.ID).Force()
+
+	job.Detail = detail
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: job,
 	}, fasthttp.StatusOK)
 }
 
+// Create user defined background job
 func (c JobController) Create(ctx *fasthttp.RequestCtx) {
 	job := model2.NewJob()
 	c.JSONBody(ctx, &job)
@@ -82,8 +122,9 @@ func (c JobController) Create(ctx *fasthttp.RequestCtx) {
 	}, fasthttp.StatusCreated)
 }
 
+// Delete user defined background job
 func (c JobController) Delete(ctx *fasthttp.RequestCtx) {
-	id := phi.URLParam(ctx, "id")
+	id := phi.URLParam(ctx, "jobID")
 
 	job := model2.NewJob()
 	c.App.Database.QueryRow(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", job.TableName()),

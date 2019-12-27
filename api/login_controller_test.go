@@ -21,7 +21,7 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	user.Email = "akdilsiz@tecpor.com"
 	userModel := new(model2.User)
 
-	err := s.API.App.Database.Insert(userModel, user)
+	err := s.API.App.Database.Insert(userModel, user, "id")
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
@@ -70,7 +70,7 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 	user.Email = "akdilsiz2@tecpor.com"
 	userModel := new(model2.User)
 
-	err := s.API.App.Database.Insert(userModel, user)
+	err := s.API.App.Database.Insert(userModel, user, "id")
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
