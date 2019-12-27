@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS ra_job_details (
     CONSTRAINT fk_ra_job_details_source_user_id foreign key (source_user_id) references ra_users(id) on update cascade on delete set null
 );
 
+CREATE INDEX IF NOT EXISTS ra_job_details_code_unique_index ON ra_job_details USING btree(code);
 CREATE INDEX IF NOT EXISTS ra_job_details_job_id_index ON ra_job_details USING btree(job_id);
 CREATE INDEX IF NOT EXISTS ra_job_details_source_user_id_index ON ra_job_details USING btree(source_user_id);
 
