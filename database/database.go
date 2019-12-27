@@ -478,7 +478,7 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	result.QueryType = "row"
 
 	var err error
-	var r interface{}
+	r := make(map[string]interface{})
 	var row *sqlx.Row
 
 	if d.Tx != nil {
@@ -490,12 +490,13 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	if target != nil {
 		err = row.StructScan(target)
 	} else {
-		r, err = row.SliceScan()
+		err = row.MapScan(r)
 	}
 
 	if err != nil {
 		d.rollback()
 		result.Error = err
+		return result
 	}
 
 	result.Rows = append(result.Rows, r)
