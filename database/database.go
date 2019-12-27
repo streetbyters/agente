@@ -579,7 +579,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 	d.QueryType = "row"
 
 	if d.Tx != nil {
-		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
 		result.Error = err
 		if err != nil {
 			return result
@@ -592,7 +592,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 		return result
 	}
 
-	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
 	result.Error = err
 	if err != nil {
 		return result
@@ -602,4 +602,55 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 	}
 
 	return result
+}
+
+func insertSQL(columns []string, tableName string, keyColumn string, args ...interface{}) (string, error) {
+	tmplStr := `insert into {{.TableName}} (` +
+		`{{$putComa := false}}` +
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}{{$f}}{{$putComa = true}} ` +
+		`{{- end}}` +
+		`) values (` +
+		`{{$putComa := false}}` +
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}:{{$f}}{{$putComa = true}} ` +
+		`{{- end}}` +
+		`) ` +
+		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
+
+	data := struct {
+		TableName string
+		Columns   []string
+		KeyColumn string
+	}{
+		TableName: tableName,
+		Columns:   columns,
+		KeyColumn: keyColumn,
+	}
+
+	return utils.ParseAndExecTemplateFromString(tmplStr, data)
+}
+
+func updateSQL(columns []string, tableName string, whereClause string, keyColumn string) (string, error) {
+	tmplStr := `update {{.TableName}} set ` +
+		`{{$putComa := false}} ` +
+		`{{- range $i, $f := .Columns}}` +
+		`{{if $putComa}}, {{end}}{{$f}} = :{{$f}}{{$putComa = true}} ` +
+		`{{- end}} ` +
+		`where {{.WhereClause}} ` +
+		`{{if ne .KeyColumn ""}}returning {{.KeyColumn}}{{end}}`
+
+	data := struct {
+		TableName   string
+		Columns     []string
+		KeyColumn   string
+		WhereClause string
+	}{
+		TableName:   tableName,
+		Columns:     columns,
+		KeyColumn:   keyColumn,
+		WhereClause: whereClause,
+	}
+
+	return utils.ParseAndExecTemplateFromString(tmplStr, data)
 }
