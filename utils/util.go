@@ -2,7 +2,9 @@ package utils
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/guregu/null.v3"
 	html "html/template"
@@ -559,4 +561,15 @@ func StringInSlice(a string, list []string) bool {
 		}
 	}
 	return false
+}
+
+// Passkey generates a string passkey with an absolute length of 192.
+func Passkey() string {
+	var p []byte
+	for i := 0; i < 9; i++ {
+		b, _ := uuid.New().MarshalBinary()
+		p = append(p, b...)
+	}
+
+	return base64.StdEncoding.WithPadding(base64.StdPadding).EncodeToString(p)
 }

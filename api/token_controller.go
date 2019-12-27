@@ -20,23 +20,22 @@ import (
 	"github.com/akdilsiz/agente/database"
 	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
-	"github.com/akdilsiz/agente/utils"
 	"github.com/valyala/fasthttp"
 	"net/http"
 )
 
-// LoginController user authentication controller
-type LoginController struct {
+// TokenController user authentication token controller
+type TokenController struct {
 	Controller
 	*API
 }
 
-// Create user sign in method
-func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
-	var loginRequest model.LoginRequest
+// Create generate user jwt method
+func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
+	tokenRequest := new(model.TokenRequest)
 
-	c.JSONBody(ctx, &loginRequest)
-	if errs, err := database.ValidateStruct(loginRequest); err != nil {
+	c.JSONBody(ctx, &tokenRequest)
+	if errs, err := database.ValidateStruct(tokenRequest); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
 			Detail: http.StatusText(http.StatusUnprocessableEntity),
@@ -44,34 +43,35 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	userModel := new(model2.User)
-	result := c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
-		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID)
+	passphrase := new(model2.UserPassphrase)
+	result := c.App.Database.QueryRowWithModel(passphrase.PassphraseQuery(c.App.Database),
+		passphrase,
+		tokenRequest.Passphrase)
 	if result.Error != nil {
 		c.JSONResponse(ctx, model.ResponseError{
-			Errors: nil,
-			Detail: http.StatusText(http.StatusNotFound),
-		}, http.StatusNotFound)
+			Detail: fasthttp.StatusMessage(fasthttp.StatusNotFound),
+		}, fasthttp.StatusNotFound)
 		return
 	}
 
-	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
+	user := new(model2.User)
+	result = c.App.Database.QueryRowWithModel("SELECT u.* FROM "+user.TableName()+" AS u "+
+		"WHERE u.id = $1 AND u.is_active = true",
+		user,
+		passphrase.UserId)
+	if result.Error != nil {
 		c.JSONResponse(ctx, model.ResponseError{
-			Detail: "authentication failed",
-		}, fasthttp.StatusUnauthorized)
+			Detail: fasthttp.StatusMessage(fasthttp.StatusNotFound),
+		}, fasthttp.StatusNotFound)
 		return
 	}
 
-	userPassphrase := new(model2.UserPassphrase)
-	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
-	c.App.Database.Insert(userPassphrase,
-		userPassphraseModel, "id", "inserted_at")
+	jwt, _ := c.API.JWTAuth.Generate(user.ID)
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
-		Data: model.LoginResponse{
-			PassphraseId: userPassphrase.ID,
-			UserId:       userModel.ID,
-			Passphrase:   userPassphrase.Passphrase,
+		Data: model.ResponseToken{
+			JWT:    jwt,
+			UserId: user.ID,
 		},
 	}, http.StatusCreated)
 }

@@ -14,57 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package errors
 
-import "github.com/bamzi/jobrunner"
+func New(text string, args ...interface{}) error {
+	e := &PluggableError{s: text}
 
-// SchedulerJobRunner jobrunner package adapter
-type SchedulerJobRunner struct {
-	SchedulerInterface `json:"-"`
-	*Scheduler
+	if len(args) == 1 {
+		e.Status = args[0].(int)
+	} else if len(args) == 2 {
+		e.Detail = args[1].(string)
+	}
+
+	return e
 }
 
-// Up jobruner start
-func (s *SchedulerJobRunner) Up() {
-	jobrunner.Start()
+type PluggableError struct {
+	Status int
+	Detail string
+	s      string
 }
 
-// Start jobrunner job
-func (s *SchedulerJobRunner) Start() {
-
-}
-
-// List jobrunner jobs
-func (s *SchedulerJobRunner) List() {
-
-}
-
-// Add jobrunner job
-func (s *SchedulerJobRunner) Add(args ...interface{}) {
-
-}
-
-// Update jobrunner job
-func (s *SchedulerJobRunner) Update(args ...interface{}) {
-
-}
-
-// Delete jobrunner job
-func (s *SchedulerJobRunner) Delete(args ...interface{}) {
-
-}
-
-// Run jobrunner job
-func (s *SchedulerJobRunner) Run() {
-
-}
-
-// Stop jobrunner job
-func (s *SchedulerJobRunner) Stop() {
-
-}
-
-// Down jobrunner kill
-func (s *SchedulerJobRunner) Down() {
-	jobrunner.Stop()
+func (e *PluggableError) Error() string {
+	return e.s
 }

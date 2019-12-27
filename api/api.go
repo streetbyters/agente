@@ -19,22 +19,27 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
 	"net/url"
+	"strconv"
 )
 
 // API rest api structure
 type API struct {
-	App    *cmn.App
-	Router *Router
+	App     *cmn.App
+	Router  *Router
+	JWTAuth *JWTAuth
+	Auth    struct {
+		ID int64
+	}
 }
 
 // NewAPI building api
 func NewAPI(app *cmn.App) *API {
 	api := &API{App: app}
+	api.JWTAuth = NewJWTAuth(api)
 	api.Router = NewRouter(api)
 
 	return api
@@ -51,9 +56,33 @@ func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
 	return values
 }
 
+// Paginate request paginate build
+func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.Pagination, map[string]string, error) {
+	pagination := model.NewPagination()
+	queryParams := a.ParseQuery(ctx)
+
+	if val, ok := queryParams["limit"]; ok {
+		pagination.Limit, _ = strconv.Atoi(val)
+	}
+
+	if val, ok := queryParams["offset"]; ok {
+		pagination.Offset, _ = strconv.ParseInt(val, 10, 64)
+	}
+
+	if val, ok := queryParams["order_by"]; ok {
+		pagination.OrderBy = val
+	}
+
+	if val, ok := queryParams["order_field"]; ok {
+		pagination.OrderField = val
+	}
+
+	errs, err := pagination.Validate(orderFields...)
+	return pagination, errs, err
+}
+
 // JSONBody parse given model request body
 func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
-	fmt.Println(string(ctx.PostBody()))
 	r := bytes.NewReader(ctx.PostBody())
 	json.NewDecoder(r).Decode(&model)
 }
@@ -61,6 +90,8 @@ func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
 // JSONResponse building json response
 func (a *API) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
 	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJSON()))
+	if response != nil {
+		ctx.SetBody([]byte(response.ToJSON()))
+	}
 	ctx.SetStatusCode(status)
 }

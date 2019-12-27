@@ -89,6 +89,7 @@ func main() {
 	config := &model.Config{
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
+		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
 		DBPath:       dbPath,
 		DBName:       viper.GetString("DB_NAME"),

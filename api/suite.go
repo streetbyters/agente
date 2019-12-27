@@ -18,8 +18,10 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/database"
+	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
@@ -29,16 +31,19 @@ import (
 	"net"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	"testing"
 )
+
+var defaultLogger *utils.Logger
 
 // Suite application test structure
 type Suite struct {
 	suite.Suite
 	API  *API
 	Auth struct {
-		User  interface{}
+		User  *model2.User
 		Token string
 	}
 }
@@ -93,7 +98,7 @@ func NewSuite() *Suite {
 	dbPath = appPath
 
 	logger := utils.NewLogger(string(mode))
-
+	defaultLogger = logger
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
@@ -102,6 +107,7 @@ func NewSuite() *Suite {
 	config := &model.Config{
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
+		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
 		DBPath:       dbPath,
 		DBName:       viper.GetString("DB_NAME"),
@@ -140,7 +146,9 @@ func NewSuite() *Suite {
 
 // Run run test suites
 func Run(t *testing.T, s suite.TestingSuite) {
+	defaultLogger.LogInfo(fmt.Sprintf("Started %s tests", reflect.TypeOf(s).Name()))
 	suite.Run(t, s)
+	defaultLogger.LogInfo(fmt.Sprintf("Finish %s tests", reflect.TypeOf(s).Name()))
 }
 
 // JSON api json request
@@ -158,6 +166,25 @@ func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {}
+
+// UserAuth generate test request auth provides
+func UserAuth(s *Suite) {
+	user := model2.NewUser("1234")
+	user.Username = "testUser"
+	user.Email = "testUser@tecpor.com"
+	user.IsActive = true
+	userModel := new(model2.User)
+
+	err := s.API.App.Database.Insert(userModel, user,
+		"id", "inserted_at")
+	if err != nil {
+		panic(err)
+	}
+
+	token, _ := s.API.JWTAuth.Generate(user.ID)
+	s.Auth.Token = token
+	s.Auth.User = user
+}
 
 // request test request for api
 func (s *Suite) request(contentType ContentType, method Method, path string, body interface{}) *TestResponse {
@@ -206,7 +233,6 @@ func (s *Suite) request(contentType ContentType, method Method, path string, bod
 	return testResponse
 }
 
-// serveAPI
 func (s *Suite) serveAPI(handler fasthttp.RequestHandler, req *fasthttp.Request, res *fasthttp.Response) error {
 	ln := fasthttputil.NewInmemoryListener()
 	defer ln.Close()

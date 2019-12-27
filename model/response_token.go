@@ -14,57 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package model
 
-import "github.com/bamzi/jobrunner"
+import (
+	"encoding/json"
+)
 
-// SchedulerJobRunner jobrunner package adapter
-type SchedulerJobRunner struct {
-	SchedulerInterface `json:"-"`
-	*Scheduler
+// ResponseToken JWT auth response
+type ResponseToken struct {
+	ResponseInterface `json:"-"`
+	JWT               string `json:"jwt"`
+	UserId            int64  `json:"user_id"`
 }
 
-// Up jobruner start
-func (s *SchedulerJobRunner) Up() {
-	jobrunner.Start()
-}
-
-// Start jobrunner job
-func (s *SchedulerJobRunner) Start() {
-
-}
-
-// List jobrunner jobs
-func (s *SchedulerJobRunner) List() {
-
-}
-
-// Add jobrunner job
-func (s *SchedulerJobRunner) Add(args ...interface{}) {
-
-}
-
-// Update jobrunner job
-func (s *SchedulerJobRunner) Update(args ...interface{}) {
-
-}
-
-// Delete jobrunner job
-func (s *SchedulerJobRunner) Delete(args ...interface{}) {
-
-}
-
-// Run jobrunner job
-func (s *SchedulerJobRunner) Run() {
-
-}
-
-// Stop jobrunner job
-func (s *SchedulerJobRunner) Stop() {
-
-}
-
-// Down jobrunner kill
-func (s *SchedulerJobRunner) Down() {
-	jobrunner.Stop()
+// ToJSON JWT auth struct to json string
+func (r ResponseToken) ToJSON() string {
+	body, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	}
+	return string(body)
 }

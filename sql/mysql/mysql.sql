@@ -1,1 +1,0 @@
-## TODO: Generate mysql migrations

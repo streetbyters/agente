@@ -14,57 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmn
+package utils
 
-import "github.com/bamzi/jobrunner"
+import "gopkg.in/go-playground/validator.v9"
 
-// SchedulerJobRunner jobrunner package adapter
-type SchedulerJobRunner struct {
-	SchedulerInterface `json:"-"`
-	*Scheduler
-}
+var validate = validator.New()
 
-// Up jobruner start
-func (s *SchedulerJobRunner) Up() {
-	jobrunner.Start()
-}
+// ValidateStruct struct validator
+func ValidateStruct(r interface{}) (map[string]string, error) {
+	err := validate.Struct(r)
+	errors := map[string]string{}
 
-// Start jobrunner job
-func (s *SchedulerJobRunner) Start() {
+	if err != nil {
+		for _, err := range err.(validator.ValidationErrors) {
+			if err.Param() != "" {
+				errors[ToSnakeCase(err.Field())] = err.ActualTag() + ": " + err.Param()
+			} else {
+				errors[ToSnakeCase(err.Field())] = err.ActualTag()
+			}
 
-}
+		}
+	}
 
-// List jobrunner jobs
-func (s *SchedulerJobRunner) List() {
-
-}
-
-// Add jobrunner job
-func (s *SchedulerJobRunner) Add(args ...interface{}) {
-
-}
-
-// Update jobrunner job
-func (s *SchedulerJobRunner) Update(args ...interface{}) {
-
-}
-
-// Delete jobrunner job
-func (s *SchedulerJobRunner) Delete(args ...interface{}) {
-
-}
-
-// Run jobrunner job
-func (s *SchedulerJobRunner) Run() {
-
-}
-
-// Stop jobrunner job
-func (s *SchedulerJobRunner) Stop() {
-
-}
-
-// Down jobrunner kill
-func (s *SchedulerJobRunner) Down() {
-	jobrunner.Stop()
+	return errors, err
 }

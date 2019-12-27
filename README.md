@@ -35,9 +35,7 @@ This project currently maintained by **[@TransferChain](https://github.com/Trans
 ## Requirements
  - Go > 1.11
  - Redis or RabbitMQ
-
-The application comes with **SQLite** as the database if you are going to run it in the local environment. \
-Supported from **PostgreSQL** and **MySQL**.
+ - PostgreSQL
 
 ## Development
 ```shell script

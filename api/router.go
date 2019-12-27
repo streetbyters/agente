@@ -19,7 +19,9 @@ package api
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	errors2 "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
@@ -83,6 +85,24 @@ func NewRouter(api *API) *Router {
 	r.Route("/api/v1", func(r phi.Router) {
 		r.Route("/user", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
+			r.Post("/token", TokenController{API: api}.Create)
+		})
+
+		r.With(api.JWTAuth.Verify).Group(func(r phi.Router) {
+			// Job Routes
+			r.Group(func(r phi.Router) {
+				r.Get("/job", JobController{API: api}.Index)
+				r.Post("/job", JobController{API: api}.Create)
+				r.Route("/job/{jobID}", func(r phi.Router) {
+					r.Get("/", JobController{API: api}.Show)
+					r.Delete("/", JobController{API: api}.Delete)
+
+					// Detail Routes
+					r.Route("/detail", func(r phi.Router) {
+						r.Post("/", JobDetailController{API: api}.Create)
+					})
+				})
+			})
 		})
 	})
 
@@ -126,6 +146,32 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
+				var err error
+				switch x := rvr.(type) {
+				case *errors2.PluggableError:
+					e := rvr.(*errors2.PluggableError)
+					r.API.JSONResponse(ctx, model.ResponseError{
+						Errors: nil,
+						Detail: e.Error(),
+					}, e.Status)
+
+					defer func() {
+						r.API.App.Logger.LogError(e, "Pluggable error")
+					}()
+					return
+				case string:
+					err = errors.New(x)
+				case error:
+					err = x
+				default:
+					err = errors.New("unknown panic")
+				}
+
+				if r.API.App.Mode == model.Test {
+					panic(rvr)
+				}
+
+				r.API.App.Logger.LogError(err, "router recover")
 				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors: nil,
 					Detail: http.StatusText(http.StatusInternalServerError),
