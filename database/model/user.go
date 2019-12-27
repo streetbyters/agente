@@ -26,10 +26,10 @@ import (
 type User struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
-	Username             string    `db:"username" json:"username" validate:"required"`
+	Username             string    `db:"username" json:"username" unique:"ra_users_username_unique_index" validate:"required"`
 	PasswordDigest       string    `db:"password_digest" json:"-"`
 	Password             string    `db:"-" json:"password" validate:"required"`
-	Email                string    `db:"email" json:"email" validate:"required,email"`
+	Email                string    `db:"email" json:"email" unique:"ra_users_email_unique_index" validate:"required,email"`
 	IsActive             bool      `db:"is_active" json:"is_active"`
 	InsertedAt           zero.Time `db:"inserted_at" json:"inserted_at"`
 	UpdatedAt            zero.Time `db:"updated_at" json:"updated_at"`

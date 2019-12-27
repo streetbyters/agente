@@ -130,7 +130,51 @@ func (s JobDetailControllerTest) Test_Should_422Error_CreateJobDetailWithValidPa
 
 	s.Equal(resp.Status, fasthttp.StatusUnprocessableEntity)
 
-	defaultLogger.LogInfo("Create a job detail with valid params")
+	defaultLogger.LogInfo("Should be 422 error create a job detail with valid params " +
+		"if code has already been taken")
+}
+
+func (s JobDetailControllerTest) Test_Should_422Error_CreateJobDetailWithValidParamsIfRelationalError() {
+	detail := model.NewJobDetail()
+	detail.Type = model2.NewRelease
+	detail.Code = "job3"
+	detail.Name = "Test Job"
+	detail.Detail.SetValid("Test Job Detail")
+	detail.Before = true
+	detail.BeforeJobs.SetValid("job4,job5")
+	detail.After = true
+	detail.AfterJobs.SetValid("job1,job2")
+	detail.Script.SetValid(`
+		#!/bin/sh
+		echo "Test Job running"
+	`)
+
+	resp := s.JSON(Post, fmt.Sprintf("/api/v1/job/999999999/detail"), detail)
+
+	s.Equal(resp.Status, fasthttp.StatusUnprocessableEntity)
+	defaultLogger.LogInfo("Should be 422 error create a job detail with valid params" +
+		"if relational error")
+}
+
+func (s JobDetailControllerTest) Test_Should_400Error_CreateJobDetailWithValidParams() {
+	detail := model.NewJobDetail()
+	detail.Type = model2.NewRelease
+	detail.Code = "job3"
+	detail.Name = "Test Job"
+	detail.Detail.SetValid("Test Job Detail")
+	detail.Before = true
+	detail.BeforeJobs.SetValid("job4,job5")
+	detail.After = true
+	detail.AfterJobs.SetValid("job1,job2")
+	detail.Script.SetValid(`
+		#!/bin/sh
+		echo "Test Job running"
+	`)
+
+	resp := s.JSON(Post, fmt.Sprintf("/api/v1/job/jobID/detail"), detail)
+
+	s.Equal(resp.Status, fasthttp.StatusBadRequest)
+	defaultLogger.LogInfo("Should be 400 error create a job detail with valid params")
 }
 
 func (s JobDetailControllerTest) TearDownSuite() {
