@@ -58,7 +58,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 	result = c.App.Database.QueryRowWithModel("SELECT u.* FROM "+user.TableName()+" AS u "+
 		"WHERE u.id = $1 AND u.is_active = true",
 		user,
-		passphrase.UserId)
+		passphrase.UserID)
 	if result.Error != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Detail: fasthttp.StatusMessage(fasthttp.StatusNotFound),

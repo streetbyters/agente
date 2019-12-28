@@ -579,7 +579,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 	d.QueryType = "row"
 
 	if d.Tx != nil {
-		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
+		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 		result.Error = err
 		if err != nil {
 			return result
@@ -592,7 +592,7 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 		return result
 	}
 
-	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
+	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 	result.Error = err
 	if err != nil {
 		return result

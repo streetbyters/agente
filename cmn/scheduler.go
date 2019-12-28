@@ -37,9 +37,8 @@ func (s *Scheduler) Packages() ([]string, map[string]SchedulerInterface) {
 	packages := make(map[string]SchedulerInterface)
 
 	packages["GoCron"] = &SchedulerGoCron{Scheduler: s}
-	packages["JobRunner"] = &SchedulerGoCron{Scheduler: s}
 
-	return []string{"GoCron", "JobRunner"}, packages
+	return []string{"GoCron"}, packages
 }
 
 // SchedulerInterface application job scheduler interface
@@ -66,6 +65,6 @@ func NewScheduler(app *App) *Scheduler {
 	}
 
 	s.Package = packages[app.Config.Scheduler]
-
+	s.Package.Up()
 	return s
 }

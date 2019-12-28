@@ -16,23 +16,62 @@
 
 package cmn
 
-import "github.com/jasonlvhit/gocron"
+import (
+	"fmt"
+	model2 "github.com/akdilsiz/agente/database/model"
+	"github.com/jasonlvhit/gocron"
+	"github.com/jmoiron/sqlx"
+)
 
 // SchedulerGoCron gocron package adapter
 type SchedulerGoCron struct {
 	SchedulerInterface `json:"-"`
 	*Scheduler
 	GoCron *gocron.Scheduler
+	Jobs   []Job
 }
 
 // Up gocron scheduler
 func (s *SchedulerGoCron) Up() {
 	s.GoCron = gocron.NewScheduler()
+	jobDetail := model2.NewJobDetail()
+	job := model2.NewJob()
+	var jobs []model2.Job
+	res := s.Scheduler.App.Database.QueryWithModel(fmt.Sprintf("SELECT * FROM %s"+
+		" AS j", job.TableName()),
+		&jobs)
+	var jobIDs []int64
+	for _, j := range jobs {
+		jobIDs = append(jobIDs, j.ID)
+	}
+
+	var rJobs []model2.Job
+	jobDetails := make([]model2.JobDetail, 0)
+	details := make(map[int64]model2.JobDetail)
+	if res.Error == nil {
+		query, args, _ := sqlx.In(fmt.Sprintf("SELECT d.* FROM %s AS d"+
+			" LEFT OUTER JOIN %s AS d2 ON d.job_id = d2.job_id AND d.id < d2.id"+
+			" WHERE d2.id IS NULL AND d.job_id IN (?)", jobDetail.TableName(), jobDetail.TableName()),
+			jobIDs)
+		query = s.Scheduler.App.Database.DB.Rebind(query)
+		s.Scheduler.App.Database.QueryWithModel(query, &jobDetails, args...)
+
+		for _, d := range jobDetails {
+			details[d.JobID] = d
+		}
+
+		for _, j := range jobs {
+			if val, ok := details[j.ID]; ok {
+				j.Detail = &val
+			}
+			rJobs = append(rJobs, j)
+		}
+	}
 }
 
 // Start gocron
 func (s *SchedulerGoCron) Start() {
-
+	s.GoCron.Start()
 }
 
 // List gcron jobs

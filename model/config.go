@@ -18,7 +18,10 @@ package model
 
 // Config Application config structure
 type Config struct {
+	NodeType     Node   `json:"node_type"`
+	NodeName     string `json:"node_name"`
 	Path         string `json:"path"`
+	LibPath      string `json:"lib_path"`
 	Mode         MODE   `json:"mode"`
 	Port         int    `json:"port"`
 	SecretKey    string `json:"secret_key"`

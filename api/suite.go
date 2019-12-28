@@ -1,3 +1,4 @@
+//-build !test
 // Copyright 2019 Abdulkadir DILSIZ - TransferChain
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
@@ -18,6 +19,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/database"
@@ -105,6 +107,7 @@ func NewSuite() *Suite {
 	cmn.FailOnError(logger, err)
 
 	config := &model.Config{
+		NodeType:     model.Node(viper.GetString("TYPE")),
 		Path:         appPath,
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),
@@ -139,9 +142,44 @@ func NewSuite() *Suite {
 	newApp.Database = db
 	newApp.Mode = model.Test
 
+	genNode(newApp)
+
 	newAPI := NewAPI(newApp)
 
 	return &Suite{API: newAPI}
+}
+
+func genNode(app *cmn.App) {
+	app.Logger.LogInfo("Generating node information")
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+
+	hostname = fmt.Sprintf("node_%s@%s", string(app.Mode), hostname)
+	node := model2.NewNode()
+	res := app.Database.QueryRowWithModel(fmt.Sprintf(`SELECT * FROM %s `+
+		`WHERE code = $1`+
+		`ORDER BY id DESC LIMIT 1`,
+		node.TableName()),
+		node,
+		hostname)
+
+	app.Config.NodeName = hostname
+
+	if res.Error != nil {
+		node.Name = hostname
+		node.Code = hostname
+		err := app.Database.Insert(new(model2.Node), node, "id", "inserted_at")
+		if err != nil {
+			panic(errors.New("node information could not be created on the database, " + err.Error()))
+		}
+	}
+
+	app.Node = node
+
+	app.Logger.LogInfo("Node information was created")
 }
 
 // Run run test suites
@@ -173,6 +211,7 @@ func UserAuth(s *Suite) {
 	user.Username = "testUser"
 	user.Email = "testUser@tecpor.com"
 	user.IsActive = true
+	user.NodeID = s.API.App.Node.ID
 	userModel := new(model2.User)
 
 	err := s.API.App.Database.Insert(userModel, user,

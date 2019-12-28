@@ -52,3 +52,13 @@ const (
 	// Other job type
 	Other JobType = "other"
 )
+
+// Node type for worker
+type Node string
+
+const (
+	// Worker node type
+	Worker Node = "worker"
+	// Master node type
+	Master Node = "master"
+)

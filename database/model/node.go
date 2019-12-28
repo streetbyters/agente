@@ -18,35 +18,34 @@ package model
 
 import (
 	"github.com/akdilsiz/agente/database"
+	"github.com/akdilsiz/agente/model"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
-// Job user defined background job structure
-type Job struct {
+// Node application type structure
+type Node struct {
 	database.DBInterface `json:"-"`
-	ID                   int64      `db:"id" json:"id"`
-	NodeID               int64      `db:"node_id" json:"node_id" foreign:"fk_ra_jobs_node_id" validate:"required"`
-	SourceUserId         zero.Int   `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_jobs_source_user_id"`
-	InsertedAt           time.Time  `db:"inserted_at" json:"inserted_at"`
-	Detail               *JobDetail `json:"detail"`
+	ID                   int64       `db:"id" json:"id"`
+	Name                 string      `db:"name" json:"name" validate:"required,gte=3,lte=200"`
+	Code                 string      `db:"code" json:"code" unique:"ra_nodes_code_unique_index" validate:"required,gte=3,lte=200"`
+	Detail               zero.String `db:"detail" json:"detail"`
+	Type                 model.Node  `db:"type" json:"type"`
+	InsertedAt           time.Time   `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            time.Time   `db:"updated_at" json:"updated_at"`
 }
 
-// NewJob generate user defined background job
-func NewJob() *Job {
-	return &Job{}
+// NewNode generate node structure
+func NewNode() *Node {
+	return &Node{Type: "worker"}
 }
 
-// TableName job database table name
-func (d *Job) TableName() string {
-	return "ra_jobs"
+// TableName node database table name
+func (d *Node) TableName() string {
+	return "ra_nodes"
 }
 
-// ToJSON job structure to json string
-func (d *Job) ToJSON() string {
+// ToJSON node structure to json string
+func (d *Node) ToJSON() string {
 	return database.ToJSON(d)
-}
-
-func (d *Job) SetDetail(detail *JobDetail) {
-	d.Detail = detail
 }

@@ -113,6 +113,10 @@ func (c JobController) Create(ctx *fasthttp.RequestCtx) {
 	job := model2.NewJob()
 	c.JSONBody(ctx, &job)
 
+	if job.NodeID <= 0 {
+		job.NodeID = c.App.Node.ID
+	}
+
 	job.SourceUserId.SetValid(c.Auth.ID)
 
 	c.App.Database.Insert(new(model2.Job), job, "id", "inserted_at")

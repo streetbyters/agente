@@ -18,6 +18,7 @@ package cmn
 
 import (
 	"github.com/akdilsiz/agente/database"
+	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	"os"
@@ -34,6 +35,7 @@ type App struct {
 	Scheduler       *Scheduler
 	Mode            model.MODE
 	Job             *Job
+	Node            *model2.Node
 }
 
 // NewApp building new app
@@ -60,9 +62,6 @@ func NewApp(config *model.Config, logger *utils.Logger) *App {
 	}
 
 	app.Job = NewJob(app)
-
-	app.Scheduler = NewScheduler(app)
-	app.Scheduler.Package.Start()
 
 	app.Logger.LogInfo("Started application")
 

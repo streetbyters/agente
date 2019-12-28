@@ -26,6 +26,7 @@ import (
 type User struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
+	NodeID               int64     `db:"node_id" json:"node_id" foreign:"fk_ra_users_node_id" validate:"required"`
 	Username             string    `db:"username" json:"username" unique:"ra_users_username_unique_index" validate:"required"`
 	PasswordDigest       string    `db:"password_digest" json:"-"`
 	Password             string    `db:"-" json:"password" validate:"required"`

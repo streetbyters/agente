@@ -19,9 +19,11 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 	"github.com/akdilsiz/agente/api"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/database"
+	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
@@ -51,6 +53,7 @@ func main() {
 	var mode model.MODE
 	var dbPath string
 	var appPath string
+	var libPath string
 
 	flag.StringVar(&devMode, "mode", "dev", "Development Mode")
 	flag.BoolVar(&migrate, "migrate", false, "Run migrations")
@@ -69,10 +72,12 @@ func main() {
 		mode = model.MODE(devMode)
 		appPath = path.Join(dirs[0])
 		dbPath = appPath
+		libPath = path.Join(appPath, "files")
 	} else {
 		mode = model.Prod
-		appPath = path.Join("etc", "tc-agente")
-		dbPath = path.Join("var", "lib", "tc-agente")
+		appPath = path.Join("etc", "agente")
+		dbPath = path.Join("var", "lib", "agente", "db")
+		libPath = path.Join("var", "lib", "agente", "files")
 	}
 
 	if configFile == "" {
@@ -87,7 +92,9 @@ func main() {
 	cmn.FailOnError(logger, err)
 
 	config := &model.Config{
+		NodeType:     model.Node(viper.GetString("TYPE")),
 		Path:         appPath,
+		LibPath:      libPath,
 		Port:         viper.GetInt("PORT"),
 		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
@@ -145,6 +152,10 @@ func main() {
 		return
 	}
 
+	genNode(newApp)
+
+	newApp.Scheduler = cmn.NewScheduler(newApp)
+
 	newAPI := api.NewAPI(newApp)
 	go func() {
 		err := newAPI.Router.Server.ListenAndServe(newAPI.Router.Addr)
@@ -152,4 +163,37 @@ func main() {
 	}()
 
 	<-newApp.Channel
+}
+
+func genNode(app *cmn.App) {
+	app.Logger.LogInfo("Generating node information")
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+
+	hostname = fmt.Sprintf("node_%s@%s", string(app.Mode), hostname)
+	node := model2.NewNode()
+	res := app.Database.QueryRowWithModel(fmt.Sprintf(`SELECT * FROM %s `+
+		`WHERE code = $1`+
+		`ORDER BY id DESC LIMIT 1`,
+		node.TableName()),
+		node,
+		hostname)
+
+	app.Config.NodeName = hostname
+
+	if res.Error != nil {
+		node.Name = hostname
+		node.Code = hostname
+		err := app.Database.Insert(new(model2.Node), node, "id", "inserted_at")
+		if err != nil {
+			panic(errors.New("node information could not be created on the database, "+err.Error()))
+		}
+	}
+
+	app.Node = node
+
+	app.Logger.LogInfo("Node information was created")
 }
