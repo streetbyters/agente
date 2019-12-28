@@ -109,6 +109,8 @@ func NewRouter(api *API) *Router {
 	router.Server = &fasthttp.Server{
 		Handler:     r.ServeFastHTTP,
 		ReadTimeout: 10 * time.Second,
+		MaxRequestBodySize: 1 * 1024 * 1024 * 1024,
+		Logger: api.App.Logger,
 	}
 	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
 	router.Handler = r
@@ -211,6 +213,7 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 			ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
 			ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 			ctx.Response.Header.Set("Accept", "application/json")
+			ctx.Response.Header.Set("Accept", "multipart/form-data")
 
 			ctx.SetStatusCode(http.StatusNoContent)
 			return
