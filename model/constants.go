@@ -62,3 +62,15 @@ const (
 	// Master node type
 	Master Node = "master"
 )
+
+// Process type for file operation
+type Process string
+
+const (
+	// Insert process for file operation
+	Insert Process = "insert"
+	// Update process for file operation
+	Update Process = "update"
+	// Distributing process for file operation
+	Distributing Process = "distributing"
+)

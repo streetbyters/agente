@@ -69,8 +69,8 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: model.LoginResponse{
-			PassphraseId: userPassphrase.ID,
-			UserId:       userModel.ID,
+			PassphraseID: userPassphrase.ID,
+			UserID:       userModel.ID,
 			Passphrase:   userPassphrase.Passphrase,
 		},
 	}, http.StatusCreated)

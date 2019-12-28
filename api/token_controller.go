@@ -71,7 +71,7 @@ func (c TokenController) Create(ctx *fasthttp.RequestCtx) {
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: model.ResponseToken{
 			JWT:    jwt,
-			UserId: user.ID,
+			UserID: user.ID,
 		},
 	}, http.StatusCreated)
 }

@@ -24,7 +24,7 @@ import (
 type ResponseToken struct {
 	ResponseInterface `json:"-"`
 	JWT               string `json:"jwt"`
-	UserId            int64  `json:"user_id"`
+	UserID            int64  `json:"user_id"`
 }
 
 // ToJSON JWT auth struct to json string

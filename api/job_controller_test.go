@@ -23,7 +23,7 @@ func (s JobControllerTest) Test_ListAllJobs() {
 	for i := 0; i < 50; i++ {
 		job := model.NewJob()
 		job.NodeID = s.API.App.Node.ID
-		job.SourceUserId.SetValid(s.Auth.User.ID)
+		job.SourceUserID.SetValid(s.Auth.User.ID)
 		j := new(model.Job)
 		err := s.API.App.Database.Insert(j, job, "id")
 		s.Nil(err)
@@ -57,7 +57,7 @@ func (s JobControllerTest) Test_ListAllJobs() {
 
 func (s JobControllerTest) Test_ShowJobWithGivenIdentifier() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.SourceUserID.SetValid(s.Auth.User.ID)
 	job.NodeID = s.API.App.Node.ID
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
@@ -108,7 +108,7 @@ func (s JobControllerTest) Test_CreateJobWithValidParams() {
 
 func (s JobControllerTest) Test_DeleteJobWithGivenIdentifier() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.SourceUserID.SetValid(s.Auth.User.ID)
 	job.NodeID = s.API.App.Node.ID
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)

@@ -27,7 +27,7 @@ type Job struct {
 	database.DBInterface `json:"-"`
 	ID                   int64      `db:"id" json:"id"`
 	NodeID               int64      `db:"node_id" json:"node_id" foreign:"fk_ra_jobs_node_id" validate:"required"`
-	SourceUserId         zero.Int   `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_jobs_source_user_id"`
+	SourceUserID         zero.Int   `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_jobs_source_user_id"`
 	InsertedAt           time.Time  `db:"inserted_at" json:"inserted_at"`
 	Detail               *JobDetail `json:"detail"`
 }
@@ -45,8 +45,4 @@ func (d *Job) TableName() string {
 // ToJSON job structure to json string
 func (d *Job) ToJSON() string {
 	return database.ToJSON(d)
-}
-
-func (d *Job) SetDetail(detail *JobDetail) {
-	d.Detail = detail
 }

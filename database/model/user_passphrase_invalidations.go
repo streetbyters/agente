@@ -40,6 +40,7 @@ func (d UserPassphraseInvalidation) TableName() string {
 	return "ra_user_passphrase_invalidations"
 }
 
+// ToJSON user passphrase invalidation structure to json string
 func (d UserPassphraseInvalidation) ToJSON() string {
 	return database.ToJSON(d)
 }

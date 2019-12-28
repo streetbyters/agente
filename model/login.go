@@ -8,8 +8,8 @@ type LoginRequest struct {
 
 // LoginResponse api login success response
 type LoginResponse struct {
-	PassphraseId int64  `json:"passphrase_id"`
-	UserId       int64  `json:"user_id"`
+	PassphraseID int64  `json:"passphrase_id"`
+	UserID       int64  `json:"user_id"`
 	Passphrase   string `json:"passphrase"`
 }
 

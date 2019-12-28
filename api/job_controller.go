@@ -117,7 +117,7 @@ func (c JobController) Create(ctx *fasthttp.RequestCtx) {
 		job.NodeID = c.App.Node.ID
 	}
 
-	job.SourceUserId.SetValid(c.Auth.ID)
+	job.SourceUserID.SetValid(c.Auth.ID)
 
 	c.App.Database.Insert(new(model2.Job), job, "id", "inserted_at")
 

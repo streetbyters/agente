@@ -119,6 +119,7 @@ type Result struct {
 }
 
 // TODO: parameters check
+
 // Force raise panic database query result is nil
 func (r Result) Force() Result {
 	if r.Error != nil {
