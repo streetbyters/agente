@@ -122,7 +122,6 @@ func (c FileController) Create(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: file,
 	}, fasthttp.StatusCreated)

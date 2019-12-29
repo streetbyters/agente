@@ -5,6 +5,7 @@ import (
 	"github.com/akdilsiz/agente/database/model"
 	"github.com/valyala/fasthttp"
 	"testing"
+	"time"
 )
 
 type FileControllerTest struct {
@@ -15,78 +16,78 @@ func (s FileControllerTest) SetupSuite() {
 	SetupSuite(s.Suite)
 	UserAuth(s.Suite)
 }
-//
-//func (s FileControllerTest) Test_ListAllFiles() {
-//	for i := 0; i < 50; i++ {
-//		file := model.NewFile()
-//		file.NodeID = s.API.App.Node.ID
-//		file.Dir = "/tmp"
-//		file.File = "file.go"
-//		err := s.API.App.Database.Insert(new(model.File), file, "id")
-//		s.Nil(err)
-//	}
-//
-//	response := s.JSON(Get, "/api/v1/file", nil)
-//
-//	s.Equal(response.Status, fasthttp.StatusOK)
-//	s.Greater(response.Success.TotalCount, int64(49))
-//	data, _ := response.Success.Data.([]interface{})
-//	s.Equal(len(data), 40)
-//
-//	defaultLogger.LogInfo("List all files")
-//}
-//
-//func (s FileControllerTest) Test_ListAllFilesWithLimitAndOffsetParams() {
-//	for i := 0; i < 100; i++ {
-//		file := model.NewFile()
-//		file.NodeID = s.API.App.Node.ID
-//		file.Dir = "/tmp"
-//		file.File = "file.go"
-//		err := s.API.App.Database.Insert(new(model.File), file, "id")
-//		s.Nil(err)
-//	}
-//
-//	response := s.JSON(Get, fmt.Sprintf("/api/v1/file?limit=%d&offset=%d", 30, 20), nil)
-//
-//	s.Equal(response.Status, fasthttp.StatusOK)
-//	s.Greater(response.Success.TotalCount, int64(49))
-//	data, _ := response.Success.Data.([]interface{})
-//	s.Equal(len(data), 30)
-//
-//	defaultLogger.LogInfo("List all files with limit and offset params")
-//}
-//
-//func (s FileControllerTest) Test_ShowFileWithGivenIdentifier() {
-//	file := model.NewFile()
-//	file.NodeID = s.API.App.Node.ID
-//	file.Dir = "/tmp"
-//	file.File = "file2.go"
-//	err := s.API.App.Database.Insert(new(model.File), file, "id", "inserted_at", "updated_at")
-//	s.Nil(err)
-//
-//	response := s.JSON(Get, fmt.Sprintf("/api/v1/file/%d", file.ID), nil)
-//
-//	s.Equal(response.Status, fasthttp.StatusOK)
-//
-//	data, _ := response.Success.Data.(map[string]interface{})
-//	s.Equal(data["id"], float64(file.ID))
-//	s.Equal(data["node_id"], float64(s.API.App.Node.ID))
-//	s.Equal(data["dir"], "/tmp")
-//	s.Equal(data["file"], "file2.go")
-//	s.Equal(data["inserted_at"], file.InsertedAt.Format(time.RFC3339Nano))
-//	s.Equal(data["updated_at"], file.UpdatedAt.Format(time.RFC3339Nano))
-//
-//	defaultLogger.LogInfo("Show a file with given identifier")
-//}
-//
-//func (s FileControllerTest) Test_Should_404Err_ShowFileWithGivenIdentifierIfNotExists() {
-//	response := s.JSON(Get, "/api/v1/file/999999999", nil)
-//
-//	s.Equal(response.Status, fasthttp.StatusNotFound)
-//
-//	defaultLogger.LogInfo("Should be 404 error show a file with given identifier" +
-//		" if does not exists")
-//}
+
+func (s FileControllerTest) Test_ListAllFiles() {
+	for i := 0; i < 50; i++ {
+		file := model.NewFile()
+		file.NodeID = s.API.App.Node.ID
+		file.Dir = "/tmp"
+		file.File = "file.go"
+		err := s.API.App.Database.Insert(new(model.File), file, "id")
+		s.Nil(err)
+	}
+
+	response := s.JSON(Get, "/api/v1/file", nil)
+
+	s.Equal(response.Status, fasthttp.StatusOK)
+	s.Greater(response.Success.TotalCount, int64(49))
+	data, _ := response.Success.Data.([]interface{})
+	s.Equal(len(data), 40)
+
+	defaultLogger.LogInfo("List all files")
+}
+
+func (s FileControllerTest) Test_ListAllFilesWithLimitAndOffsetParams() {
+	for i := 0; i < 100; i++ {
+		file := model.NewFile()
+		file.NodeID = s.API.App.Node.ID
+		file.Dir = "/tmp"
+		file.File = "file.go"
+		err := s.API.App.Database.Insert(new(model.File), file, "id")
+		s.Nil(err)
+	}
+
+	response := s.JSON(Get, fmt.Sprintf("/api/v1/file?limit=%d&offset=%d", 30, 20), nil)
+
+	s.Equal(response.Status, fasthttp.StatusOK)
+	s.Greater(response.Success.TotalCount, int64(49))
+	data, _ := response.Success.Data.([]interface{})
+	s.Equal(len(data), 30)
+
+	defaultLogger.LogInfo("List all files with limit and offset params")
+}
+
+func (s FileControllerTest) Test_ShowFileWithGivenIdentifier() {
+	file := model.NewFile()
+	file.NodeID = s.API.App.Node.ID
+	file.Dir = "/tmp"
+	file.File = "file2.go"
+	err := s.API.App.Database.Insert(new(model.File), file, "id", "inserted_at", "updated_at")
+	s.Nil(err)
+
+	response := s.JSON(Get, fmt.Sprintf("/api/v1/file/%d", file.ID), nil)
+
+	s.Equal(response.Status, fasthttp.StatusOK)
+
+	data, _ := response.Success.Data.(map[string]interface{})
+	s.Equal(data["id"], float64(file.ID))
+	s.Equal(data["node_id"], float64(s.API.App.Node.ID))
+	s.Equal(data["dir"], "/tmp")
+	s.Equal(data["file"], "file2.go")
+	s.Equal(data["inserted_at"], file.InsertedAt.Format(time.RFC3339Nano))
+	s.Equal(data["updated_at"], file.UpdatedAt.Format(time.RFC3339Nano))
+
+	defaultLogger.LogInfo("Show a file with given identifier")
+}
+
+func (s FileControllerTest) Test_Should_404Err_ShowFileWithGivenIdentifierIfNotExists() {
+	response := s.JSON(Get, "/api/v1/file/999999999", nil)
+
+	s.Equal(response.Status, fasthttp.StatusNotFound)
+
+	defaultLogger.LogInfo("Should be 404 error show a file with given identifier" +
+		" if does not exists")
+}
 
 func (s FileControllerTest) Test_CreateFileWithValidParams() {
 	file := model.NewFile()

@@ -29,6 +29,7 @@ type UploadController struct {
 	*API
 }
 
+// DirIndex directory list in lib path
 func (c UploadController) DirIndex(ctx *fasthttp.RequestCtx) {
 	var dirs []model.Dir
 	i := 0

@@ -107,9 +107,11 @@ func NewRouter(api *API) *Router {
 
 			// File routes
 			r.Group(func(r phi.Router) {
+				r.Get("/file/log", FileLogController{API: api}.Index)
 				r.Get("/file", FileController{API: api}.Index)
 				r.Post("/file", FileController{API: api}.Create)
 				r.Route("/file/{fileID}", func(r phi.Router) {
+					r.Get("/log", FileLogController{API: api}.Index)
 					r.Get("/", FileController{API: api}.Show)
 					r.Put("/", FileController{API: api}.Update)
 					r.Delete("/", FileController{API: api}.Delete)
