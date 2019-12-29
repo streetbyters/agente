@@ -88,7 +88,8 @@ func NewRouter(api *API) *Router {
 			r.Post("/token", TokenController{API: api}.Create)
 		})
 
-		r.With(api.JWTAuth.Verify).Group(func(r phi.Router) {
+		r.Group(func(r phi.Router) {
+			r.Use(api.JWTAuth.Verify)
 			// Job Routes
 			r.Group(func(r phi.Router) {
 				r.Get("/job", JobController{API: api}.Index)
@@ -101,6 +102,17 @@ func NewRouter(api *API) *Router {
 					r.Route("/detail", func(r phi.Router) {
 						r.Post("/", JobDetailController{API: api}.Create)
 					})
+				})
+			})
+
+			// File routes
+			r.Group(func(r phi.Router) {
+				r.Get("/file", FileController{API: api}.Index)
+				r.Post("/file", FileController{API: api}.Create)
+				r.Route("/file/{fileID}", func(r phi.Router) {
+					r.Get("/", FileController{API: api}.Show)
+					r.Put("/", FileController{API: api}.Update)
+					r.Delete("/", FileController{API: api}.Delete)
 				})
 			})
 		})
