@@ -115,14 +115,17 @@ func NewRouter(api *API) *Router {
 					r.Delete("/", FileController{API: api}.Delete)
 				})
 			})
+
+			r.Get("/upload/dir", UploadController{API: api}.DirIndex)
+			r.Post("/upload", UploadController{API: api}.Create)
 		})
 	})
 
 	router.Server = &fasthttp.Server{
-		Handler:     r.ServeFastHTTP,
-		ReadTimeout: 10 * time.Second,
+		Handler:            r.ServeFastHTTP,
+		ReadTimeout:        10 * time.Second,
 		MaxRequestBodySize: 1 * 1024 * 1024 * 1024,
-		Logger: api.App.Logger,
+		Logger:             api.App.Logger,
 	}
 	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
 	router.Handler = r

@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS ra_file_logs (
 
     CONSTRAINT fk_ra_file_logs_node_id FOREIGN KEY (node_id)
         REFERENCES ra_nodes(id) ON UPDATE CASCADE ON DELETE cascade,
-    CONSTRAINT fk_ra_file_logs_upload_id FOREIGN KEY (file_id)
+    CONSTRAINT fk_ra_file_logs_file_id FOREIGN KEY (file_id)
         REFERENCES ra_files(id) ON UPDATE CASCADE ON DELETE SET NULL ,
     CONSTRAINT fk_ra_file_logs_source_user_id FOREIGN KEY (source_user_id)
         REFERENCES ra_users(id) ON UPDATE CASCADE ON DELETE SET NULL

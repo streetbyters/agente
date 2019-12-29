@@ -38,7 +38,7 @@ func (c FileController) Index(ctx *fasthttp.RequestCtx) {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
 			Detail: err.Error(),
-		}, fasthttp.StatusUnprocessableEntity)
+		}, fasthttp.StatusBadRequest)
 	}
 
 	upload := model2.NewFile()
@@ -90,15 +90,38 @@ func (c FileController) Create(ctx *fasthttp.RequestCtx) {
 
 	// TODO: file distribute all worker nodes
 
-	if err := c.App.Database.Insert(new(model2.File), file, "id", "inserted_at", "updated_at"); err != nil {
+	var err error
+
+	db := c.App.Database.Transaction(func(tx *database.Tx) error {
+		if err := c.App.Database.Insert(new(model2.File), file, "id", "inserted_at", "updated_at"); err != nil {
+			return err
+		}
+
+		log := model2.NewFileLog(file.ID)
+		log.NodeID = file.NodeID
+		log.Type = model.Insert
+		log.Data = model2.FileLogData{
+			Dir:  file.Dir,
+			File: file.File,
+			Type: file.Type,
+		}
+
+		c.App.Database.Insert(new(model2.FileLog), log, "id")
+		return nil
+	})
+
+	err = db.Error
+
+	if err != nil {
 		if errs, err := database.ValidateConstraint(err, file); err != nil {
 			c.JSONResponse(ctx, model.ResponseError{
 				Errors: errs,
 				Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
 			}, fasthttp.StatusUnprocessableEntity)
-			return
 		}
+		return
 	}
+
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: file,
@@ -126,7 +149,27 @@ func (c FileController) Update(ctx *fasthttp.RequestCtx) {
 		return
 	}
 
-	err := c.App.Database.Update(&file, fileRequest, nil, "id", "updated_at")
+	var err error
+
+	db := c.App.Database.Transaction(func(tx *database.Tx) error {
+		if err := c.App.Database.Update(&file, fileRequest, nil, "id", "updated_at"); err != nil {
+			return err
+		}
+
+		log := model2.NewFileLog(file.ID)
+		log.NodeID = fileRequest.NodeID
+		log.Type = model.Update
+		log.Data = model2.FileLogData{
+			Dir:  file.Dir,
+			File: file.File,
+			Type: file.Type,
+		}
+
+		c.App.Database.Insert(new(model2.FileLog), log, "id")
+		return nil
+	})
+	err = db.Error
+
 	if errs, err := database.ValidateConstraint(err, fileRequest); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
