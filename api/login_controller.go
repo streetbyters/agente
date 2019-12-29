@@ -45,15 +45,8 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	userModel := new(model2.User)
-	result := c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
-		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID)
-	if result.Error != nil {
-		c.JSONResponse(ctx, model.ResponseError{
-			Errors: nil,
-			Detail: http.StatusText(http.StatusNotFound),
-		}, http.StatusNotFound)
-		return
-	}
+	c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
+		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID).Force()
 
 	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
