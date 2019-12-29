@@ -32,14 +32,7 @@ type FileLogController struct {
 
 // Index list all file logs
 func (c FileLogController) Index(ctx *fasthttp.RequestCtx) {
-	paginate, errs, err := c.Paginate(ctx, "id", "node_id", "type", "inserted_at")
-	if err != nil {
-		c.JSONResponse(ctx, model2.ResponseError{
-			Errors: errs,
-			Detail: fasthttp.StatusMessage(fasthttp.StatusBadRequest),
-		}, fasthttp.StatusBadRequest)
-		return
-	}
+	paginate, _, _ := c.Paginate(ctx, "id", "node_id", "type", "inserted_at")
 
 	fileID := phi.URLParam(ctx, "fileID")
 	log := new(model.FileLog)

@@ -37,6 +37,22 @@ func (s FileControllerTest) Test_ListAllFiles() {
 	defaultLogger.LogInfo("List all files")
 }
 
+func (s FileControllerTest) Test_Should_400Err_ListAllFilesWithInvalidPaginateFields() {
+	for i := 0; i < 50; i++ {
+		file := model.NewFile()
+		file.NodeID = s.API.App.Node.ID
+		file.Dir = "/tmp"
+		file.File = "file.go"
+		err := s.API.App.Database.Insert(new(model.File), file, "id")
+		s.Nil(err)
+	}
+
+	response := s.JSON(Get, "/api/v1/file?limit=limit&offset=offset", nil)
+
+	s.Equal(response.Status, fasthttp.StatusBadRequest)
+	defaultLogger.LogInfo("List all files")
+}
+
 func (s FileControllerTest) Test_ListAllFilesWithLimitAndOffsetParams() {
 	for i := 0; i < 100; i++ {
 		file := model.NewFile()
