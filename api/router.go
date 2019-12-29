@@ -169,7 +169,6 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 				switch x := rvr.(type) {
 				case *errors2.PluggableError:
 					e := rvr.(*errors2.PluggableError)
-					fmt.Println(e.Status)
 					r.API.JSONResponse(ctx, model.ResponseError{
 						Errors: e.Errors,
 						Detail: e.Error(),

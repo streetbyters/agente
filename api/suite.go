@@ -39,6 +39,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 var defaultLogger *utils.Logger
@@ -149,14 +150,16 @@ func NewSuite() *Suite {
 	newApp.Database = db
 	newApp.Mode = model.Test
 
-	genNode(newApp)
+	ch := make(chan bool)
+	go genNode(ch, newApp)
+	<-ch
 
 	newAPI := NewAPI(newApp)
 
 	return &Suite{API: newAPI}
 }
 
-func genNode(app *cmn.App) {
+func genNode(ch chan bool, app *cmn.App) {
 	app.Logger.LogInfo("Generating node information")
 
 	hostname, err := os.Hostname()
@@ -187,6 +190,10 @@ func genNode(app *cmn.App) {
 	app.Node = node
 
 	app.Logger.LogInfo("Node information was created")
+
+	time.AfterFunc(time.Millisecond * 100, func() {
+		ch<-true
+	})
 }
 
 // Run run test suites
