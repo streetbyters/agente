@@ -46,6 +46,9 @@ func (c JobDetailController) Create(ctx *fasthttp.RequestCtx) {
 	jobDetail := model.NewJobDetail()
 	c.API.JSONBody(ctx, &jobDetail)
 	jobDetail.JobID = jobID
+	if jobDetail.NodeID <= 0 {
+		jobDetail.NodeID = c.App.Node.ID
+	}
 	jobDetail.SourceUserID.SetValid(c.Auth.ID)
 
 	if errs, err := database.ValidateStruct(jobDetail); err != nil {

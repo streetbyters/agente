@@ -24,8 +24,9 @@ import (
 // UserPassphraseInvalidation authentication access token invalidation struct
 type UserPassphraseInvalidation struct {
 	database.DBInterface `json:"-"`
-	PassphraseId         int64     `db:"passphrase_id" json:"passphrase_id" foreign:"fk_ra_user_passphrases_passphrase_id" unique:"ra_user_passphrase_invalidations_pkey"`
-	SourceUserId         int64     `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_user_passphrases_source_user_id"`
+	PassphraseID         int64     `db:"passphrase_id" json:"passphrase_id" foreign:"fk_ra_user_passphrases_passphrase_id" unique:"ra_user_passphrase_invalidations_pkey"`
+	NodeID               int64     `db:"node_id" json:"node_id" foreign:"fk_ra_user_passphrases_invalidations_node_id" validate:"required"`
+	SourceUserID         int64     `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_user_passphrases_source_user_id"`
 	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
 
@@ -39,6 +40,7 @@ func (d UserPassphraseInvalidation) TableName() string {
 	return "ra_user_passphrase_invalidations"
 }
 
+// ToJSON user passphrase invalidation structure to json string
 func (d UserPassphraseInvalidation) ToJSON() string {
 	return database.ToJSON(d)
 }

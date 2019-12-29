@@ -52,3 +52,25 @@ const (
 	// Other job type
 	Other JobType = "other"
 )
+
+// Node type for worker
+type Node string
+
+const (
+	// Worker node type
+	Worker Node = "worker"
+	// Master node type
+	Master Node = "master"
+)
+
+// Process type for file operation
+type Process string
+
+const (
+	// Insert process for file operation
+	Insert Process = "insert"
+	// Update process for file operation
+	Update Process = "update"
+	// Distributing process for file operation
+	Distributing Process = "distributing"
+)

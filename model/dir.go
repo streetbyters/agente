@@ -16,22 +16,13 @@
 
 package model
 
-import (
-	"encoding/json"
-)
+import "time"
 
-// ResponseToken JWT auth response
-type ResponseToken struct {
-	ResponseInterface `json:"-"`
-	JWT               string `json:"jwt"`
-	UserID            int64  `json:"user_id"`
-}
-
-// ToJSON JWT auth struct to json string
-func (r ResponseToken) ToJSON() string {
-	body, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	}
-	return string(body)
+// Dir lib path dir info structure
+type Dir struct {
+	Path    string      `json:"path"`
+	Name    string      `json:"name"`
+	Mode    interface{} `json:"mode"`
+	Size    int64       `json:"size"`
+	ModTime time.Time   `json:"mod_time"`
 }

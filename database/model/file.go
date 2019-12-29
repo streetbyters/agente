@@ -18,31 +18,36 @@ package model
 
 import (
 	"github.com/akdilsiz/agente/database"
+	"github.com/akdilsiz/agente/model"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
-// Job user defined background job structure
-type Job struct {
+// File job scripts database structure
+type File struct {
 	database.DBInterface `json:"-"`
 	ID                   int64      `db:"id" json:"id"`
-	NodeID               int64      `db:"node_id" json:"node_id" foreign:"fk_ra_jobs_node_id" validate:"required"`
-	SourceUserID         zero.Int   `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_jobs_source_user_id"`
+	NodeID               int64      `db:"node_id" json:"node_id" foreign:"fk_ra_files_node_id"`
+	ParentID             zero.Int   `db:"parent_id" json:"parent_id" foreign:"fk_ra_files_parent_id"`
+	JobID                zero.Int   `db:"job_id" json:"job_id" foreign:"fk_ra_files_job_id"`
+	Dir                  string     `db:"dir" json:"dir" validate:"required"`
+	File                 string     `db:"file" json:"file" validate:"required"`
+	Type                 model.Node `db:"type" json:"type"`
 	InsertedAt           time.Time  `db:"inserted_at" json:"inserted_at"`
-	Detail               *JobDetail `json:"detail"`
+	UpdatedAt            time.Time  `db:"updated_at" json:"updated_at"`
 }
 
-// NewJob generate user defined background job
-func NewJob() *Job {
-	return &Job{}
+// NewFile generate file structure
+func NewFile() *File {
+	return &File{Type: model.Worker}
 }
 
-// TableName job database table name
-func (d *Job) TableName() string {
-	return "ra_jobs"
+// TableName file structure database table name
+func (d *File) TableName() string {
+	return "ra_files"
 }
 
-// ToJSON job structure to json string
-func (d *Job) ToJSON() string {
+// ToJSON file structure to json string
+func (d *File) ToJSON() string {
 	return database.ToJSON(d)
 }

@@ -14,9 +14,26 @@ type TestStruct struct {
 	Detail string `validate:"gte=5"`
 }
 
+// Node application type structure
+type TestNode struct {
+	DBInterface `json:"-"`
+	ID          int64       `db:"id" json:"id"`
+	Name        string      `db:"name" json:"name" validate:"required,gte=3,lte=200"`
+	Code        string      `db:"code" json:"code" unique:"ra_nodes_code_unique_index" validate:"required,gte=3,lte=200"`
+	Detail      zero.String `db:"detail" json:"detail"`
+	Type        model.Node  `db:"type" json:"type"`
+	InsertedAt  time.Time   `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt   time.Time   `db:"updated_at" json:"updated_at"`
+}
+
+func (m *TestNode) TableName() string {
+	return "ra_nodes"
+}
+
 type TestJobDetail struct {
 	DBInterface  `json:"-"`
 	ID           int64    `db:"id" json:"id"`
+	NodeID       int64    `db:"node_id" json:"node_id"`
 	JobID        int64    `db:"job_id" json:"job_id" foreign:"fk_ra_job_details_job_id" validate:"required"`
 	SourceUserID zero.Int `db:"source_user_id" foreign:"fk_ra_job_details_source_user_id" json:"source_user_id"`
 
@@ -42,6 +59,7 @@ func (m *TestJobDetail) TableName() string {
 type TestUser struct {
 	DBInterface    `json:"-"`
 	ID             int64     `db:"id" json:"id"`
+	NodeID         int64     `db:"node_id" json:"node_id"`
 	Username       string    `db:"username" json:"username" unique:"ra_users_username_unique_index" validate:"required"`
 	PasswordDigest string    `db:"password_digest" json:"-"`
 	Password       string    `db:"-" json:"password" validate:"required"`
@@ -91,8 +109,15 @@ func TestValidateConstraint(t *testing.T) {
 	DropDB(db)
 	InstallDB(db)
 
+	node := new(TestNode)
+	node.Name = "node1"
+	node.Code = "node1"
+	err = db.Insert(new(TestNode), node, "id", "inserted_at")
+	assert.Nil(t, err)
+
 	// ForeignKey constraint error
 	detail := new(TestJobDetail)
+	detail.NodeID = node.ID
 	detail.JobID = int64(999999999)
 	detail.Code = "job3"
 	detail.Name = "Test Job"
@@ -113,6 +138,7 @@ func TestValidateConstraint(t *testing.T) {
 
 	// Unique constraint erro
 	user := new(TestUser)
+	user.NodeID = node.ID
 	user.Username = "akdilsiz2"
 	user.PasswordDigest = "asdasdasd"
 	user.Email = "akdilsiz2@tecpor.com"
@@ -121,6 +147,7 @@ func TestValidateConstraint(t *testing.T) {
 	assert.Nil(t, err)
 
 	user2 := new(TestUser)
+	user2.NodeID = node.ID
 	user2.Username = "akdilsiz2"
 	user2.PasswordDigest = "asdasdasd"
 	user2.Email = "akdilsiz2@tecpor.com"
@@ -131,6 +158,7 @@ func TestValidateConstraint(t *testing.T) {
 	assert.Equal(t, errs["username"], "has been already taken")
 
 	user3 := new(TestUser)
+	user3.NodeID = node.ID
 	user3.Username = "akdilsiz2"
 	user3.Email = "akdilsiz2@tecpor.com"
 

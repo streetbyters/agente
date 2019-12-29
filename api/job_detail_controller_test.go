@@ -19,7 +19,8 @@ func (s JobDetailControllerTest) SetupSuite() {
 
 func (s JobDetailControllerTest) Test_CreateJobDetailWithValidParams() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.NodeID = s.API.App.Node.ID
+	job.SourceUserID.SetValid(s.Auth.User.ID)
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
 
@@ -63,7 +64,8 @@ func (s JobDetailControllerTest) Test_CreateJobDetailWithValidParams() {
 
 func (s JobDetailControllerTest) Test_Should_422Error_CreateJobDetailWithInvalidParams() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.NodeID = s.API.App.Node.ID
+	job.SourceUserID.SetValid(s.Auth.User.ID)
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
 
@@ -90,11 +92,13 @@ func (s JobDetailControllerTest) Test_Should_422Error_CreateJobDetailWithInvalid
 
 func (s JobDetailControllerTest) Test_Should_422Error_CreateJobDetailWithValidParamsIfCodeNotUnique() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.NodeID = s.API.App.Node.ID
+	job.SourceUserID.SetValid(s.Auth.User.ID)
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
 
 	detail := model.NewJobDetail()
+	detail.NodeID = s.API.App.Node.ID
 	detail.JobID = job.ID
 	detail.Type = model2.NewRelease
 	detail.Code = "job4"

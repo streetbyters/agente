@@ -27,7 +27,8 @@ import (
 type UserPassphrase struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
-	UserId               int64     `db:"user_id" json:"user_id" foreign:"fk_ra_user_passphrases_user_id"`
+	NodeID               int64     `db:"node_id" json:"node_id" foreign:"fk_ra_user_passphrases_node_id" validate:"required"`
+	UserID               int64     `db:"user_id" json:"user_id" foreign:"fk_ra_user_passphrases_user_id"`
 	Passphrase           string    `db:"passphrase" json:"passphrase" unique:"ra_user_passphrases_passphrase_unique_index"`
 	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
 }
@@ -35,7 +36,7 @@ type UserPassphrase struct {
 // NewUserPassphrase generate authentication access token
 func NewUserPassphrase(userID int64) *UserPassphrase {
 	return &UserPassphrase{
-		UserId:     userID,
+		UserID:     userID,
 		Passphrase: utils.Passkey(),
 	}
 }

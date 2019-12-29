@@ -22,7 +22,8 @@ func (s JobControllerTest) SetupSuite() {
 func (s JobControllerTest) Test_ListAllJobs() {
 	for i := 0; i < 50; i++ {
 		job := model.NewJob()
-		job.SourceUserId.SetValid(s.Auth.User.ID)
+		job.NodeID = s.API.App.Node.ID
+		job.SourceUserID.SetValid(s.Auth.User.ID)
 		j := new(model.Job)
 		err := s.API.App.Database.Insert(j, job, "id")
 		s.Nil(err)
@@ -34,6 +35,7 @@ func (s JobControllerTest) Test_ListAllJobs() {
 		jobDetail.Code = "job" + strconv.Itoa(i)
 		jobDetail.Name = "jobName"
 		jobDetail.Type = model2.NewRelease
+		jobDetail.NodeID = s.API.App.Node.ID
 		err = s.API.App.Database.Insert(new(model.JobDetail), jobDetail, "id")
 		s.Nil(err)
 		if err != nil {
@@ -55,11 +57,13 @@ func (s JobControllerTest) Test_ListAllJobs() {
 
 func (s JobControllerTest) Test_ShowJobWithGivenIdentifier() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.SourceUserID.SetValid(s.Auth.User.ID)
+	job.NodeID = s.API.App.Node.ID
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
 
 	jobDetail := model.NewJobDetail()
+	jobDetail.NodeID = s.API.App.Node.ID
 	jobDetail.JobID = job.ID
 	jobDetail.Code = "job2"
 	jobDetail.Name = "jobName"
@@ -73,6 +77,7 @@ func (s JobControllerTest) Test_ShowJobWithGivenIdentifier() {
 	data := resp.Success.Data.(map[string]interface{})
 
 	s.Equal(data["id"], float64(job.ID))
+	s.Equal(data["node_id"], float64(s.API.App.Node.ID))
 	s.Equal(data["source_user_id"], float64(s.Auth.User.ID))
 	detail := data["detail"].(map[string]interface{})
 	s.Equal(detail["id"], float64(jobDetail.ID))
@@ -103,7 +108,8 @@ func (s JobControllerTest) Test_CreateJobWithValidParams() {
 
 func (s JobControllerTest) Test_DeleteJobWithGivenIdentifier() {
 	job := model.NewJob()
-	job.SourceUserId.SetValid(s.Auth.User.ID)
+	job.SourceUserID.SetValid(s.Auth.User.ID)
+	job.NodeID = s.API.App.Node.ID
 	err := s.API.App.Database.Insert(new(model.Job), job, "id", "inserted_at")
 	s.Nil(err)
 

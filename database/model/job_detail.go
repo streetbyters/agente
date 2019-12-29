@@ -27,6 +27,7 @@ import (
 type JobDetail struct {
 	database.DBInterface `json:"-"`
 	ID                   int64    `db:"id" json:"id"`
+	NodeID               int64    `db:"node_id" json:"node_id" foreign:"fk_ra_job_details_node_id" validate:"required"`
 	JobID                int64    `db:"job_id" json:"job_id" foreign:"fk_ra_job_details_job_id" validate:"required"`
 	SourceUserID         zero.Int `db:"source_user_id" foreign:"fk_ra_job_details_source_user_id" json:"source_user_id"`
 

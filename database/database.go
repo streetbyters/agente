@@ -85,6 +85,7 @@ func (d Database) Force() Database {
 
 	defer func() {
 		d.QueryType = ""
+		d.Error = nil
 	}()
 
 	return d
@@ -119,6 +120,7 @@ type Result struct {
 }
 
 // TODO: parameters check
+
 // Force raise panic database query result is nil
 func (r Result) Force() Result {
 	if r.Error != nil {
@@ -130,6 +132,7 @@ func (r Result) Force() Result {
 
 	defer func() {
 		r.QueryType = ""
+		r.Error = nil
 	}()
 
 	return r
@@ -567,19 +570,64 @@ func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error
 }
 
 // Update query builder by database type
-func (d *Database) Update(table string, whereClause string, data interface{}) Result {
-	result := Result{}
+func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, keys ...string) error {
+	id := reflect.ValueOf(reflect.ValueOf(m).Interface()).Elem().FieldByName("ID").Int()
+	reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
 
-	return result
+	_, c1, _ := GetChanges(m, data, "update")
+
+	d.QueryType = "update"
+
+	var where string
+	if whereClause != nil {
+		where = *whereClause
+	} else {
+		where = "id = :id"
+	}
+
+	str, _ := updateSQL(c1, m.TableName(), where, strings.Join(keys, ", "))
+
+	var stmt *sqlx.NamedStmt
+	var err error
+
+	if d.Tx != nil {
+		stmt, err = d.Tx.PrepareNamed(str)
+	} else {
+		stmt, err = d.DB.PrepareNamed(str)
+	}
+
+	if err != nil {
+		d.Error = err
+		return err
+	}
+
+	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+		return err
+	}
+
+	if err := stmt.Close(); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // Delete query build by database type
 func (d *Database) Delete(table string, whereClause string, args ...interface{}) Result {
 	result := Result{}
-	d.QueryType = "row"
+	result.QueryType = "row"
 
 	if d.Tx != nil {
-		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
+		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 		result.Error = err
 		if err != nil {
 			return result
@@ -592,11 +640,12 @@ func (d *Database) Delete(table string, whereClause string, args ...interface{})
 		return result
 	}
 
-	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table) + " WHERE " + whereClause, args...)
-	result.Error = err
+	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
 	if err != nil {
+		result.Error = err
 		return result
 	}
+
 	if i, _ := res.RowsAffected(); i <= 0 {
 		result.Error = errors.New("do not found row affected")
 	}

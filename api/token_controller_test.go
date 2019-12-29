@@ -20,6 +20,7 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 	userModel := model2.NewUser("123456")
 	userModel.Username = "akdilsiz"
 	userModel.Email = "akdilsiz@tecpor.com"
+	userModel.NodeID = s.API.App.Node.ID
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id", "inserted_at")
@@ -27,6 +28,7 @@ func (s TokenControllerTest) Test_PostTokenWithValidParams() {
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
+	userPassphraseModel.NodeID = s.API.App.Node.ID
 	userPassphraseModel.InsertedAt = time.Now().UTC()
 	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
@@ -48,6 +50,7 @@ func (s TokenControllerTest) Test_Shoul_404Error_PostTokenWithValidParamsIfNotEx
 	userModel := model2.NewUser("123456")
 	userModel.Username = "akdilsiz2"
 	userModel.Email = "akdilsiz2@tecpor.com"
+	userModel.NodeID = s.API.App.Node.ID
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
@@ -68,6 +71,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 	userModel.Username = "akdilsiz3"
 	userModel.Email = "akdilsiz3@tecpor.com"
 	userModel.IsActive = false
+	userModel.NodeID = s.API.App.Node.ID
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
@@ -75,6 +79,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfUser
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
+	userPassphraseModel.NodeID = s.API.App.Node.ID
 	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
 
@@ -92,6 +97,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 	userModel := model2.NewUser("123456")
 	userModel.Username = "akdilsiz4"
 	userModel.Email = "akdilsiz4@tecpor.com"
+	userModel.NodeID = s.API.App.Node.ID
 	user := new(model2.User)
 
 	err := s.API.App.Database.Insert(user, userModel, "id")
@@ -99,6 +105,7 @@ func (s TokenControllerTest) Test_Should_404Error_PostTokenWithValidParamsIfPass
 
 	userPassphrase := new(model2.UserPassphrase)
 	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
+	userPassphraseModel.NodeID = s.API.App.Node.ID
 	userPassphraseModel.InsertedAt = time.Now().UTC().AddDate(0, -4, 0)
 	err = s.API.App.Database.Insert(userPassphrase, userPassphraseModel, "passphrase")
 	s.Nil(err)
