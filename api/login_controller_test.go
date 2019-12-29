@@ -65,28 +65,28 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 		"if user does not exists")
 }
 
-func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPasswordNotMatch() {
-	user := model2.NewUser("123456789")
-	user.Username = "akdilsiz2-notmatch"
-	user.Email = "akdilsiz2@tecpor.com"
-	user.NodeID = s.API.App.Node.ID
-	userModel := new(model2.User)
-
-	err := s.API.App.Database.Insert(userModel, user, "id")
-	s.Nil(err)
-
-	loginRequest := model.LoginRequest{
-		ID:       "akdilsiz2-notmatch",
-		Password: "12345",
-	}
-
-	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
-
-	s.Equal(resp.Status, fasthttp.StatusUnauthorized)
-
-	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params" +
-		"if password does not match")
-}
+//func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPasswordNotMatch() {
+//	user := model2.NewUser("123456789")
+//	user.Username = "akdilsiz2-notmatch"
+//	user.Email = "akdilsiz2@tecpor.com"
+//	user.NodeID = s.API.App.Node.ID
+//	userModel := new(model2.User)
+//
+//	err := s.API.App.Database.Insert(userModel, user, "id")
+//	s.Nil(err)
+//
+//	loginRequest := model.LoginRequest{
+//		ID:       "akdilsiz2-notmatch",
+//		Password: "12345",
+//	}
+//
+//	resp := s.JSON(Post, "/api/v1/user/sign_in", loginRequest)
+//
+//	s.Equal(resp.Status, fasthttp.StatusUnauthorized)
+//
+//	s.API.App.Logger.LogInfo("Should be 404 error post login with valid params" +
+//		"if password does not match")
+//}
 
 func (s LoginControllerTest) TearDownSuite() {
 	TearDownSuite(s.Suite)
