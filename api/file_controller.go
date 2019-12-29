@@ -33,13 +33,7 @@ type FileController struct {
 
 // Index list all job files
 func (c FileController) Index(ctx *fasthttp.RequestCtx) {
-	paginate, errs, err := c.Paginate(ctx, "id", "inserted_at", "updated_at")
-	if err != nil {
-		c.JSONResponse(ctx, model.ResponseError{
-			Errors: errs,
-			Detail: err.Error(),
-		}, fasthttp.StatusBadRequest)
-	}
+	paginate, _, _ := c.Paginate(ctx, "id", "inserted_at", "updated_at")
 
 	upload := model2.NewFile()
 	var uploads []model2.File

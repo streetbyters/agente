@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/akdilsiz/agente/cmn"
+	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
 	"net/url"
@@ -58,15 +59,23 @@ func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
 
 // Paginate request paginate build
 func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.Pagination, map[string]string, error) {
+	var err error
+	errs := make(map[string]string)
 	pagination := model.NewPagination()
 	queryParams := a.ParseQuery(ctx)
 
 	if val, ok := queryParams["limit"]; ok {
-		pagination.Limit, _ = strconv.Atoi(val)
+		pagination.Limit, err = strconv.Atoi(val)
+		if err != nil {
+			errs["limit"] = "is not valid"
+		}
 	}
 
 	if val, ok := queryParams["offset"]; ok {
-		pagination.Offset, _ = strconv.ParseInt(val, 10, 64)
+		pagination.Offset, err = strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			errs["offset"] = "is not valid"
+		}
 	}
 
 	if val, ok := queryParams["order_by"]; ok {
@@ -77,7 +86,22 @@ func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.P
 		pagination.OrderField = val
 	}
 
-	errs, err := pagination.Validate(orderFields...)
+	if err != nil {
+		panic(pluggableError.New(fasthttp.StatusMessage(fasthttp.StatusBadRequest),
+			fasthttp.StatusBadRequest,
+			"paginate params not valid",
+			errs))
+	}
+
+	errs, err = pagination.Validate(orderFields...)
+
+	if err != nil {
+		panic(pluggableError.New(fasthttp.StatusMessage(fasthttp.StatusBadRequest),
+			fasthttp.StatusBadRequest,
+			"paginate params not valid",
+			errs))
+	}
+
 	return pagination, errs, err
 }
 

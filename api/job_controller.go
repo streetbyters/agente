@@ -33,13 +33,7 @@ type JobController struct {
 
 // Index list all user defined background jobs
 func (c JobController) Index(ctx *fasthttp.RequestCtx) {
-	paginate, errs, err := c.Paginate(ctx, "id", "inserted_at")
-	if err != nil {
-		c.JSONResponse(ctx, model.ResponseError{
-			Errors: errs,
-			Detail: err.Error(),
-		}, fasthttp.StatusUnprocessableEntity)
-	}
+	paginate, _, _ := c.Paginate(ctx, "id", "inserted_at")
 
 	jobDetail := model2.NewJobDetail()
 	job := model2.NewJob()
@@ -80,7 +74,7 @@ func (c JobController) Index(ctx *fasthttp.RequestCtx) {
 	}
 
 	var count int64
-	err = c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", job.TableName()))
+	c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", job.TableName()))
 
 	c.JSONResponse(ctx, model.ResponseSuccess{
 		Data:       rJobs,
