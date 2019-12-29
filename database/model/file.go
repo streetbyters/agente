@@ -19,6 +19,7 @@ package model
 import (
 	"github.com/akdilsiz/agente/database"
 	"github.com/akdilsiz/agente/model"
+	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )
 
@@ -26,9 +27,11 @@ import (
 type File struct {
 	database.DBInterface `json:"-"`
 	ID                   int64      `db:"id" json:"id"`
-	NodeID               int64      `db:"id" json:"node_id"`
-	Dir                  string     `db:"dir" json:"dir"`
-	File                 string     `db:"file" json:"file"`
+	NodeID               int64      `db:"node_id" json:"node_id" foreign:"fk_ra_files_node_id"`
+	ParentID             zero.Int   `db:"parent_id" json:"parent_id" foreign:"fk_ra_files_parent_id"`
+	JobID                zero.Int   `db:"job_id" json:"job_id" foreign:"fk_ra_files_job_id"`
+	Dir                  string     `db:"dir" json:"dir" validate:"required"`
+	File                 string     `db:"file" json:"file" validate:"required"`
 	Type                 model.Node `db:"type" json:"type"`
 	InsertedAt           time.Time  `db:"inserted_at" json:"inserted_at"`
 	UpdatedAt            time.Time  `db:"updated_at" json:"updated_at"`

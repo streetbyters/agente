@@ -36,7 +36,7 @@ func NewPagination() Pagination {
 	return Pagination{
 		Limit:      40,
 		Offset:     0,
-		OrderBy:    "DESC",
+		OrderBy:    "desc",
 		OrderField: "id",
 	}
 }

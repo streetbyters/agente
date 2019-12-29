@@ -88,7 +88,8 @@ func NewRouter(api *API) *Router {
 			r.Post("/token", TokenController{API: api}.Create)
 		})
 
-		r.With(api.JWTAuth.Verify).Group(func(r phi.Router) {
+		r.Group(func(r phi.Router) {
+			r.Use(api.JWTAuth.Verify)
 			// Job Routes
 			r.Group(func(r phi.Router) {
 				r.Get("/job", JobController{API: api}.Index)
@@ -103,14 +104,30 @@ func NewRouter(api *API) *Router {
 					})
 				})
 			})
+
+			// File routes
+			r.Group(func(r phi.Router) {
+				r.Get("/file/log", FileLogController{API: api}.Index)
+				r.Get("/file", FileController{API: api}.Index)
+				r.Post("/file", FileController{API: api}.Create)
+				r.Route("/file/{fileID}", func(r phi.Router) {
+					r.Get("/log", FileLogController{API: api}.Index)
+					r.Get("/", FileController{API: api}.Show)
+					r.Put("/", FileController{API: api}.Update)
+					r.Delete("/", FileController{API: api}.Delete)
+				})
+			})
+
+			r.Get("/upload/dir", UploadController{API: api}.DirIndex)
+			r.Post("/upload", UploadController{API: api}.Create)
 		})
 	})
 
 	router.Server = &fasthttp.Server{
-		Handler:     r.ServeFastHTTP,
-		ReadTimeout: 10 * time.Second,
+		Handler:            r.ServeFastHTTP,
+		ReadTimeout:        10 * time.Second,
 		MaxRequestBodySize: 1 * 1024 * 1024 * 1024,
-		Logger: api.App.Logger,
+		Logger:             api.App.Logger,
 	}
 	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
 	router.Handler = r

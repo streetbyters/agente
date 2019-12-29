@@ -18,8 +18,10 @@ package api
 
 import (
 	"fmt"
+	"github.com/akdilsiz/agente/database"
 	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
+	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 )
 
@@ -36,19 +38,17 @@ func (c FileController) Index(ctx *fasthttp.RequestCtx) {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
 			Detail: err.Error(),
-		}, fasthttp.StatusUnprocessableEntity)
+		}, fasthttp.StatusBadRequest)
 	}
 
 	upload := model2.NewFile()
 	var uploads []model2.File
-	res := c.App.Database.QueryWithModel(fmt.Sprintf("SELECT f.* FROM %s AS f "+
+	c.App.Database.QueryWithModel(fmt.Sprintf("SELECT f.* FROM %s AS f "+
 		"ORDER BY f.%s %s LIMIT $1 OFFSET $2",
 		upload.TableName(), paginate.OrderField, paginate.OrderBy),
 		&uploads,
 		paginate.Limit,
 		paginate.Offset)
-
-	fmt.Println(res.Error)
 
 	var count int64
 	c.App.Database.DB.Get(&count, fmt.Sprintf("SELECT count(*) FROM %s", upload.TableName()))
@@ -59,16 +59,123 @@ func (c FileController) Index(ctx *fasthttp.RequestCtx) {
 	}, fasthttp.StatusOK)
 }
 
-// Create job file
-func (c FileController) Create(ctx *fasthttp.RequestCtx) {
+// Show job file
+func (c FileController) Show(ctx *fasthttp.RequestCtx) {
+	var file model2.File
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", file.TableName()),
+		&file,
+		phi.URLParam(ctx, "fileID")).Force()
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
-		Data: nil,
+		Data: file,
+	}, fasthttp.StatusOK)
+}
+
+// Create job file
+func (c FileController) Create(ctx *fasthttp.RequestCtx) {
+	file := model2.NewFile()
+	c.JSONBody(ctx, &file)
+
+	if file.NodeID <= 0 {
+		file.NodeID = c.App.Node.ID
+	}
+
+	if errs, err := database.ValidateStruct(file); err != nil {
+		c.JSONResponse(ctx, model.ResponseError{
+			Errors: errs,
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
+		return
+	}
+
+	// TODO: file distribute all worker nodes
+
+	var err error
+
+	db := c.App.Database.Transaction(func(tx *database.Tx) error {
+		if err := c.App.Database.Insert(new(model2.File), file, "id", "inserted_at", "updated_at"); err != nil {
+			return err
+		}
+
+		log := model2.NewFileLog(file.ID)
+		log.NodeID = file.NodeID
+		log.Type = model.Insert
+		log.Data = model2.FileLogData{
+			Dir:  file.Dir,
+			File: file.File,
+			Type: file.Type,
+		}
+
+		c.App.Database.Insert(new(model2.FileLog), log, "id")
+		return nil
+	})
+
+	err = db.Error
+
+	if err != nil {
+		if errs, err := database.ValidateConstraint(err, file); err != nil {
+			c.JSONResponse(ctx, model.ResponseError{
+				Errors: errs,
+				Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+			}, fasthttp.StatusUnprocessableEntity)
+		}
+		return
+	}
+
+	c.JSONResponse(ctx, model.ResponseSuccessOne{
+		Data: file,
 	}, fasthttp.StatusCreated)
 }
 
 // Update job file
 func (c FileController) Update(ctx *fasthttp.RequestCtx) {
+	var file model2.File
+	c.App.Database.QueryRowWithModel(fmt.Sprintf("SELECT * FROM %s WHERE id = $1", file.TableName()),
+		&file,
+		phi.URLParam(ctx, "fileID")).Force()
+
+	fileRequest := model2.NewFile()
+	c.JSONBody(ctx, &fileRequest)
+	if fileRequest.NodeID <= 0 {
+		fileRequest.NodeID = c.App.Node.ID
+	}
+
+	if errs, err := database.ValidateStruct(fileRequest); err != nil {
+		c.JSONResponse(ctx, model.ResponseError{
+			Errors: errs,
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
+		return
+	}
+
+	var err error
+
+	db := c.App.Database.Transaction(func(tx *database.Tx) error {
+		if err := c.App.Database.Update(&file, fileRequest, nil, "id", "updated_at"); err != nil {
+			return err
+		}
+
+		log := model2.NewFileLog(file.ID)
+		log.NodeID = fileRequest.NodeID
+		log.Type = model.Update
+		log.Data = model2.FileLogData{
+			Dir:  file.Dir,
+			File: file.File,
+			Type: file.Type,
+		}
+
+		c.App.Database.Insert(new(model2.FileLog), log, "id")
+		return nil
+	})
+	err = db.Error
+
+	if errs, err := database.ValidateConstraint(err, fileRequest); err != nil {
+		c.JSONResponse(ctx, model.ResponseError{
+			Errors: errs,
+			Detail: fasthttp.StatusMessage(fasthttp.StatusUnprocessableEntity),
+		}, fasthttp.StatusUnprocessableEntity)
+		return
+	}
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: nil,
@@ -77,6 +184,8 @@ func (c FileController) Update(ctx *fasthttp.RequestCtx) {
 
 // Delete job file
 func (c FileController) Delete(ctx *fasthttp.RequestCtx) {
+	file := model2.NewFile()
+	c.App.Database.Delete(file.TableName(), "id = $1", phi.URLParam(ctx, "fileID")).Force()
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
 		Data: nil,

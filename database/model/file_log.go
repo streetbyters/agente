@@ -30,17 +30,17 @@ import (
 type FileLog struct {
 	database.DBInterface `json:"-"`
 	ID                   int64         `db:"id" json:"id"`
-	NodeID               int64         `db:"node_id" json:"node_id"`
-	FileID               int64         `db:"upload_id" json:"upload_id"`
-	SourceUserID         zero.Int      `db:"source_user_id" json:"source_user_id"`
+	NodeID               int64         `db:"node_id" json:"node_id" foreign:"fk_ra_file_logs_node_id"`
+	FileID               int64         `db:"file_id" json:"file_id" foreign:"fk_ra_file_logs_file_id"`
+	SourceUserID         zero.Int      `db:"source_user_id" json:"source_user_id" foreign:"fk_ra_file_logs_source_user_id"`
 	Type                 model.Process `db:"type" json:"type"`
 	Data                 FileLogData   `db:"data" json:"data,omitempty"`
 	InsertedAt           time.Time     `db:"inserted_at" json:"inserted_at"`
 }
 
 // NewFileLog generate file log structure
-func NewFileLog(uploadID int64) *FileLog {
-	return &FileLog{FileID: uploadID}
+func NewFileLog(fileID int64) *FileLog {
+	return &FileLog{FileID: fileID}
 }
 
 // TableName upload log structure database table name
