@@ -17,7 +17,7 @@ func (s LoginControllerTest) SetupSuite() {
 
 func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	user := model2.NewUser("123456")
-	user.Username = "akdilsiz"
+	user.Username = "akdilsiz-login"
 	user.Email = "akdilsiz@tecpor.com"
 	user.NodeID = s.API.App.Node.ID
 	userModel := new(model2.User)
@@ -26,7 +26,7 @@ func (s LoginControllerTest) Test_PostLoginWithValidParams() {
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
-		ID:       "akdilsiz",
+		ID:       "akdilsiz-login",
 		Password: "123456",
 	}
 
@@ -67,7 +67,7 @@ func (s LoginControllerTest) Test_Should_404Error_PostLoginWithValidParamsIfUser
 
 func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPasswordNotMatch() {
 	user := model2.NewUser("123456789")
-	user.Username = "akdilsiz2"
+	user.Username = "akdilsiz2-notmatch"
 	user.Email = "akdilsiz2@tecpor.com"
 	user.NodeID = s.API.App.Node.ID
 	userModel := new(model2.User)
@@ -76,7 +76,7 @@ func (s LoginControllerTest) Test_Should_401Error_PostLoginWithValidParamsIfPass
 	s.Nil(err)
 
 	loginRequest := model.LoginRequest{
-		ID:       "akdilsiz2",
+		ID:       "akdilsiz2-notmatch",
 		Password: "12345",
 	}
 
