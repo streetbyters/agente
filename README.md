@@ -19,7 +19,7 @@
 
 Distributed simple and robust release management and monitoring system.
 
-This project currently maintained by **[@TransferChain](https://github.com/TransferChain)**
+This project currently sponsored by **[@TransferChain](https://github.com/TransferChain)**
 
 ***This project on going work.*
 
@@ -61,7 +61,7 @@ I would like to accept any contributions to make Agente better and feature rich.
 [See detail](docs/contribution.md)
 ## LICENSE
 
-Copyright 2019 Abdulkadir DILSIZ - TransferChain
+Copyright 2019 Abdulkadir Dilsiz
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
