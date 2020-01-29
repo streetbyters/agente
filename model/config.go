@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,9 +18,13 @@ package model
 
 // Config Application config structure
 type Config struct {
+	NodeType     Node   `json:"node_type"`
+	NodeName     string `json:"node_name"`
 	Path         string `json:"path"`
+	LibPath      string `json:"lib_path"`
 	Mode         MODE   `json:"mode"`
 	Port         int    `json:"port"`
+	SecretKey    string `json:"secret_key"`
 	DB           DB     `json:"db"`
 	DBPath       string `json:"db_path"`
 	DBName       string `json:"db_name"`

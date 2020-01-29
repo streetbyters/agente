@@ -5,5 +5,5 @@
  - Let's make a branch.
  - Improve/fix documentation.
  - Generate pull request.
-   
+
 ***In preparation.*

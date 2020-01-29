@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -19,22 +19,28 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"github.com/akdilsiz/agente/cmn"
+	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/valyala/fasthttp"
 	"net/url"
+	"strconv"
 )
 
 // API rest api structure
 type API struct {
-	App    *cmn.App
-	Router *Router
+	App     *cmn.App
+	Router  *Router
+	JWTAuth *JWTAuth
+	Auth    struct {
+		ID int64
+	}
 }
 
 // NewAPI building api
 func NewAPI(app *cmn.App) *API {
 	api := &API{App: app}
+	api.JWTAuth = NewJWTAuth(api)
 	api.Router = NewRouter(api)
 
 	return api
@@ -51,9 +57,56 @@ func (a *API) ParseQuery(ctx *fasthttp.RequestCtx) map[string]string {
 	return values
 }
 
+// Paginate request paginate build
+func (a *API) Paginate(ctx *fasthttp.RequestCtx, orderFields ...string) (model.Pagination, map[string]string, error) {
+	var err error
+	errs := make(map[string]string)
+	pagination := model.NewPagination()
+	queryParams := a.ParseQuery(ctx)
+
+	if val, ok := queryParams["limit"]; ok {
+		pagination.Limit, err = strconv.Atoi(val)
+		if err != nil {
+			errs["limit"] = "is not valid"
+		}
+	}
+
+	if val, ok := queryParams["offset"]; ok {
+		pagination.Offset, err = strconv.ParseInt(val, 10, 64)
+		if err != nil {
+			errs["offset"] = "is not valid"
+		}
+	}
+
+	if val, ok := queryParams["order_by"]; ok {
+		pagination.OrderBy = val
+	}
+
+	if val, ok := queryParams["order_field"]; ok {
+		pagination.OrderField = val
+	}
+
+	if err != nil {
+		panic(pluggableError.New(fasthttp.StatusMessage(fasthttp.StatusBadRequest),
+			fasthttp.StatusBadRequest,
+			"paginate params not valid",
+			errs))
+	}
+
+	errs, err = pagination.Validate(orderFields...)
+
+	if err != nil {
+		panic(pluggableError.New(fasthttp.StatusMessage(fasthttp.StatusBadRequest),
+			fasthttp.StatusBadRequest,
+			"paginate params not valid",
+			errs))
+	}
+
+	return pagination, errs, err
+}
+
 // JSONBody parse given model request body
 func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
-	fmt.Println(string(ctx.PostBody()))
 	r := bytes.NewReader(ctx.PostBody())
 	json.NewDecoder(r).Decode(&model)
 }
@@ -61,6 +114,8 @@ func (a *API) JSONBody(ctx *fasthttp.RequestCtx, model interface{}) {
 // JSONResponse building json response
 func (a *API) JSONResponse(ctx *fasthttp.RequestCtx, response model.ResponseInterface, status int) {
 	ctx.Response.Header.Set("Content-Type", "application/json; charset=utf-8")
-	ctx.SetBody([]byte(response.ToJSON()))
+	if response != nil {
+		ctx.SetBody([]byte(response.ToJSON()))
+	}
 	ctx.SetStatusCode(status)
 }

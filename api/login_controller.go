@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,10 +17,10 @@
 package api
 
 import (
-	"fmt"
 	"github.com/akdilsiz/agente/database"
 	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
+	"github.com/akdilsiz/agente/utils"
 	"github.com/valyala/fasthttp"
 	"net/http"
 )
@@ -36,7 +36,6 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 	var loginRequest model.LoginRequest
 
 	c.JSONBody(ctx, &loginRequest)
-	fmt.Println(loginRequest)
 	if errs, err := database.ValidateStruct(loginRequest); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
 			Errors: errs,
@@ -46,19 +45,26 @@ func (c LoginController) Create(ctx *fasthttp.RequestCtx) {
 	}
 
 	userModel := new(model2.User)
-	result := c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
-		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID)
-	if result.Error != nil {
+	c.App.Database.QueryRowWithModel("SELECT * FROM "+userModel.TableName()+" AS u "+
+		"WHERE u.username = $1 OR u.email = $1", userModel, loginRequest.ID).Force()
+
+	if err := utils.ComparePassword([]byte(userModel.PasswordDigest), []byte(loginRequest.Password)); err != nil {
 		c.JSONResponse(ctx, model.ResponseError{
-			Errors: nil,
-			Detail: http.StatusText(http.StatusNotFound),
-		}, http.StatusNotFound)
+			Detail: "authentication failed",
+		}, fasthttp.StatusUnauthorized)
 		return
 	}
 
-	fmt.Println(userModel)
+	userPassphrase := new(model2.UserPassphrase)
+	userPassphraseModel := model2.NewUserPassphrase(userModel.ID)
+	c.App.Database.Insert(userPassphrase,
+		userPassphraseModel, "id", "inserted_at")
 
 	c.JSONResponse(ctx, model.ResponseSuccessOne{
-		Data: "OK",
+		Data: model.LoginResponse{
+			PassphraseID: userPassphrase.ID,
+			UserID:       userModel.ID,
+			Passphrase:   userPassphrase.Passphrase,
+		},
 	}, http.StatusCreated)
 }

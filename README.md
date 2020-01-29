@@ -3,8 +3,14 @@
   <img height="150" src="assets/agente.png"/>
  </p>
  <p align="center">
+   <a href="https://travis-ci.org/akdilsiz/agente">
+    <img src="https://travis-ci.org/akdilsiz/agente.svg?branch=master"/>
+   </a>
    <a href="https://github.com/akdilsiz/agente/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
+   </a>
+   <a href="https://codecov.io/gh/akdilsiz/agente">
+     <img src="https://codecov.io/gh/akdilsiz/agente/branch/master/graph/badge.svg" />
    </a>
    <a href="https://goreportcard.com/report/github.com/akdilsiz/agente">
     <img src="https://goreportcard.com/badge/github.com/akdilsiz/agente"/>
@@ -13,7 +19,7 @@
 
 Distributed simple and robust release management and monitoring system.
 
-This project currently maintained by **[@TransferChain](https://github.com/TransferChain)**
+This project currently sponsored by **[@TransferChain](https://github.com/TransferChain)**
 
 ***This project on going work.*
 
@@ -27,11 +33,9 @@ This project currently maintained by **[@TransferChain](https://github.com/Trans
  - [ ] All relevant third-party system integrations (version control, CI, database, queuing etc.)
 
 ## Requirements
- - Go > 1.9
+ - Go > 1.11
  - Redis or RabbitMQ
-
-The application comes with **SQLite** as the database if you are going to run it in the local environment. \
-Supported from **PostgreSQL** and **MySQL**.
+ - PostgreSQL
 
 ## Development
 ```shell script
@@ -57,7 +61,7 @@ I would like to accept any contributions to make Agente better and feature rich.
 [See detail](docs/contribution.md)
 ## LICENSE
 
-Copyright 2019 Abdulkadir DILSIZ - TransferChain
+Copyright 2019 Abdulkadir Dilsiz
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -19,7 +19,9 @@ package api
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	errors2 "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
@@ -83,12 +85,49 @@ func NewRouter(api *API) *Router {
 	r.Route("/api/v1", func(r phi.Router) {
 		r.Route("/user", func(r phi.Router) {
 			r.Post("/sign_in", LoginController{API: api}.Create)
+			r.Post("/token", TokenController{API: api}.Create)
+		})
+
+		r.Group(func(r phi.Router) {
+			r.Use(api.JWTAuth.Verify)
+			// Job Routes
+			r.Group(func(r phi.Router) {
+				r.Get("/job", JobController{API: api}.Index)
+				r.Post("/job", JobController{API: api}.Create)
+				r.Route("/job/{jobID}", func(r phi.Router) {
+					r.Get("/", JobController{API: api}.Show)
+					r.Delete("/", JobController{API: api}.Delete)
+
+					// Detail Routes
+					r.Route("/detail", func(r phi.Router) {
+						r.Post("/", JobDetailController{API: api}.Create)
+					})
+				})
+			})
+
+			// File routes
+			r.Group(func(r phi.Router) {
+				r.Get("/file/log", FileLogController{API: api}.Index)
+				r.Get("/file", FileController{API: api}.Index)
+				r.Post("/file", FileController{API: api}.Create)
+				r.Route("/file/{fileID}", func(r phi.Router) {
+					r.Get("/log", FileLogController{API: api}.Index)
+					r.Get("/", FileController{API: api}.Show)
+					r.Put("/", FileController{API: api}.Update)
+					r.Delete("/", FileController{API: api}.Delete)
+				})
+			})
+
+			r.Get("/upload/dir", UploadController{API: api}.DirIndex)
+			r.Post("/upload", UploadController{API: api}.Create)
 		})
 	})
 
 	router.Server = &fasthttp.Server{
-		Handler:     r.ServeFastHTTP,
-		ReadTimeout: 10 * time.Second,
+		Handler:            r.ServeFastHTTP,
+		ReadTimeout:        10 * time.Second,
+		MaxRequestBodySize: 1 * 1024 * 1024 * 1024,
+		Logger:             api.App.Logger,
 	}
 	router.Addr = ":" + strconv.Itoa(api.App.Config.Port)
 	router.Handler = r
@@ -126,6 +165,32 @@ func (r Router) recover(next phi.HandlerFunc) phi.HandlerFunc {
 	return func(ctx *fasthttp.RequestCtx) {
 		defer func() {
 			if rvr := recover(); rvr != nil {
+				var err error
+				switch x := rvr.(type) {
+				case *errors2.PluggableError:
+					e := rvr.(*errors2.PluggableError)
+					r.API.JSONResponse(ctx, model.ResponseError{
+						Errors: e.Errors,
+						Detail: e.Error(),
+					}, e.Status)
+
+					defer func() {
+						r.API.App.Logger.LogError(e, "Pluggable error")
+					}()
+					return
+				case string:
+					err = errors.New(x)
+				case error:
+					err = x
+				default:
+					err = errors.New("unknown panic")
+				}
+
+				if r.API.App.Mode == model.Test {
+					panic(rvr)
+				}
+
+				r.API.App.Logger.LogError(err, "router recover")
 				r.API.JSONResponse(ctx, model.ResponseError{
 					Errors: nil,
 					Detail: http.StatusText(http.StatusInternalServerError),
@@ -165,6 +230,7 @@ func (r Router) cors(next phi.HandlerFunc) phi.HandlerFunc {
 			ctx.Response.Header.Set("Access-Control-Allow-Methods", allowMethods)
 			ctx.Response.Header.Set("Access-Control-Allow-Origin", allowOrigin)
 			ctx.Response.Header.Set("Accept", "application/json")
+			ctx.Response.Header.Set("Accept", "multipart/form-data")
 
 			ctx.SetStatusCode(http.StatusNoContent)
 			return

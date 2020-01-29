@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,6 +18,7 @@ package cmn
 
 import (
 	"errors"
+	"github.com/akdilsiz/agente/utils"
 )
 
 // Scheduler application job scheduler
@@ -26,13 +27,29 @@ type Scheduler struct {
 	Package SchedulerInterface
 }
 
+// SchedulerJob General scheduler job struct
+type SchedulerJob struct {
+	Data interface{} `json:"data"`
+}
+
+// Packages All defined scheduler packages
+func (s *Scheduler) Packages() ([]string, map[string]SchedulerInterface) {
+	packages := make(map[string]SchedulerInterface)
+
+	packages["GoCron"] = &SchedulerGoCron{Scheduler: s}
+
+	return []string{"GoCron"}, packages
+}
+
 // SchedulerInterface application job scheduler interface
 type SchedulerInterface interface {
+	Up()
+	Down()
 	Start()
 	List()
-	Add()
-	Update(id int64)
-	Delete(id int64)
+	Add(args ...interface{})
+	Update(args ...interface{})
+	Delete(args ...interface{})
 	Run()
 	Stop()
 }
@@ -41,13 +58,13 @@ type SchedulerInterface interface {
 func NewScheduler(app *App) *Scheduler {
 	s := &Scheduler{App: app}
 
-	switch app.Config.Scheduler {
-	case "JobRunner":
-		s.Package = &SchedulerJobRunner{Scheduler: s}
-		break
-	default:
-		panic(errors.New("unknown scheduler type"))
+	names, packages := s.Packages()
+
+	if ok, _ := utils.InArray(app.Config.Scheduler, names); !ok {
+		panic(errors.New("undefined scheduler"))
 	}
 
+	s.Package = packages[app.Config.Scheduler]
+	s.Package.Up()
 	return s
 }

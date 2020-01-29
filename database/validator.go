@@ -57,6 +57,8 @@ func ValidateConstraint(err error, r interface{}) (map[string]string, error) {
 					}
 				}
 			}
+			errs = constraintErrors(t.Field(i), pgerr, tags, errs)
+
 			if tag, ok := field.Lookup("foreign"); ok && tag == pgerr.Constraint {
 				tags = append(tags, struct {
 					Name       string
@@ -81,10 +83,7 @@ func constraintErrors(field reflect.StructField, dbError *pq.Error, tags []Tag, 
 			break
 		case string(ForeignKeyViolation):
 			msg = string(NotExistsError)
-		case string(NotNullViolation):
-			msg = string(NotNullError)
-		default:
-			msg = dbError.Message
+			break
 		}
 
 		errs[utils.ToSnakeCase(field.Name)] = msg

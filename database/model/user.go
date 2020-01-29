@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,23 +17,23 @@
 package model
 
 import (
-	"encoding/json"
 	"github.com/akdilsiz/agente/database"
 	"github.com/akdilsiz/agente/utils"
-	"time"
+	"gopkg.in/guregu/null.v3/zero"
 )
 
 // User Authentication/authorization base database model
 type User struct {
 	database.DBInterface `json:"-"`
 	ID                   int64     `db:"id" json:"id"`
-	Username             string    `db:"username" json:"username" validate:"required"`
+	NodeID               int64     `db:"node_id" json:"node_id" foreign:"fk_ra_users_node_id" validate:"required"`
+	Username             string    `db:"username" json:"username" unique:"ra_users_username_unique_index" validate:"required"`
 	PasswordDigest       string    `db:"password_digest" json:"-"`
 	Password             string    `db:"-" json:"password" validate:"required"`
-	Email                string    `db:"email" json:"email" validate:"required,email"`
+	Email                string    `db:"email" json:"email" unique:"ra_users_email_unique_index" validate:"required,email"`
 	IsActive             bool      `db:"is_active" json:"is_active"`
-	InsertedAt           time.Time `db:"inserted_at" json:"inserted_at"`
-	UpdatedAt            time.Time `db:"updated_at" json:"updated_at"`
+	InsertedAt           zero.Time `db:"inserted_at" json:"inserted_at"`
+	UpdatedAt            zero.Time `db:"updated_at" json:"updated_at"`
 }
 
 // NewUser user generate with default data
@@ -51,9 +51,5 @@ func (d User) TableName() string {
 
 // ToJSON User database model to json string
 func (d User) ToJSON() string {
-	b, err := json.Marshal(d)
-	if err != nil {
-		return ""
-	}
-	return string(b)
+	return database.ToJSON(d)
 }

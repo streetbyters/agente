@@ -1,5 +1,4 @@
-//
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -25,37 +24,47 @@ type SchedulerJobRunner struct {
 	*Scheduler
 }
 
-// Start jobrunner
-func (s SchedulerJobRunner) Start() {
+// Up jobruner start
+func (s *SchedulerJobRunner) Up() {
 	jobrunner.Start()
 }
 
+// Start jobrunner job
+func (s *SchedulerJobRunner) Start() {
+
+}
+
 // List jobrunner jobs
-func (s SchedulerJobRunner) List() {
+func (s *SchedulerJobRunner) List() {
 
 }
 
 // Add jobrunner job
-func (s SchedulerJobRunner) Add() {
+func (s *SchedulerJobRunner) Add(args ...interface{}) {
 
 }
 
 // Update jobrunner job
-func (s SchedulerJobRunner) Update(id int64) {
+func (s *SchedulerJobRunner) Update(args ...interface{}) {
 
 }
 
 // Delete jobrunner job
-func (s SchedulerJobRunner) Delete(id int64) {
+func (s *SchedulerJobRunner) Delete(args ...interface{}) {
 
 }
 
 // Run jobrunner job
-func (s SchedulerJobRunner) Run() {
+func (s *SchedulerJobRunner) Run() {
 
 }
 
-// Stop jobrunner
-func (s SchedulerJobRunner) Stop() {
+// Stop jobrunner job
+func (s *SchedulerJobRunner) Stop() {
+
+}
+
+// Down jobrunner kill
+func (s *SchedulerJobRunner) Down() {
 	jobrunner.Stop()
 }

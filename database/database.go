@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,20 +17,21 @@
 package database
 
 import (
-	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	pluggableError "github.com/akdilsiz/agente/errors"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
-	"github.com/mattn/go-sqlite3"
-	_ "github.com/mattn/go-sqlite3" // SQLite Driver
+	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -61,19 +62,48 @@ const (
 
 // Database struct
 type Database struct {
-	Config *model.Config
-	Type   model.DB
-	DB     *sqlx.DB
-	Tx     *sqlx.Tx
-	Logger *utils.Logger
-	Error  error
-	Reset  bool
+	Config    *model.Config
+	Type      model.DB
+	DB        *sqlx.DB
+	Tx        *sqlx.Tx
+	Logger    *utils.Logger
+	Error     error
+	Reset     bool
+	QueryType string
+}
+
+// Force raise panic database query result is nil
+func (d Database) Force() Database {
+	if d.Error != nil {
+		switch d.QueryType {
+		case "row":
+			panic(pluggableError.New("not found", fasthttp.StatusNotFound))
+		case "insert", "update":
+			panic(pluggableError.New("incorrect given parameters", fasthttp.StatusUnprocessableEntity))
+		}
+	}
+
+	defer func() {
+		d.QueryType = ""
+		d.Error = nil
+	}()
+
+	return d
 }
 
 // DBInterface database model interface
 type DBInterface interface {
 	TableName() string
 	ToJSON() string
+}
+
+// ToJSON Converting models belonging to DBInterface to json string
+func ToJSON(model DBInterface) string {
+	b, err := json.Marshal(model)
+	if err != nil {
+		return ""
+	}
+	return string(b)
 }
 
 // Tx transaction for database queries
@@ -83,34 +113,37 @@ type Tx struct {
 
 // Result structure for database query results
 type Result struct {
-	Rows  []interface{}
-	Count int64
-	Error error
+	QueryType string
+	Rows      []interface{}
+	Count     int64
+	Error     error
+}
+
+// TODO: parameters check
+
+// Force raise panic database query result is nil
+func (r Result) Force() Result {
+	if r.Error != nil {
+		switch r.QueryType {
+		case "row":
+			panic(pluggableError.New("not found", fasthttp.StatusNotFound))
+		}
+	}
+
+	defer func() {
+		r.QueryType = ""
+		r.Error = nil
+	}()
+
+	return r
 }
 
 // NewDB building database
-func NewDB(config *model.Config) (*Database, error) {
+func NewDB(config *model.Config, connURL ...string) (*Database, error) {
 	database := &Database{}
 	database.Config = config
 
 	switch config.DB {
-	case model.SQLite:
-		connURL := fmt.Sprintf("file:%s?cache=shared&mode=rwc",
-			filepath.Join(config.DBPath, config.DBName))
-
-		var db *sqlx.DB
-		var db2 *sql.DB
-
-		db2, _ = sql.Open("sqlite3", connURL)
-		db = sqlx.NewDb(db2, "sqlite3")
-
-		if err := db.Ping(); err != nil {
-			return nil, err
-		}
-
-		database.Type = model.SQLite
-		database.DB = db
-		break
 	case model.Postgres:
 		connURL := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
 			config.DBHost,
@@ -132,27 +165,6 @@ func NewDB(config *model.Config) (*Database, error) {
 		database.Type = model.Postgres
 		database.DB = db
 		break
-	case model.Mysql:
-		connURL := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?tls=%s",
-			config.DBUser,
-			config.DBPass,
-			config.DBHost,
-			config.DBPort,
-			config.DBName,
-			config.DBSsl)
-
-		db, _ := sqlx.Open("mysql", connURL)
-
-		if err := db.Ping(); err != nil {
-			return nil, err
-		}
-		db.SetMaxIdleConns(15)
-		db.SetMaxOpenConns(15)
-
-		database.Type = model.Mysql
-		database.DB = db
-
-		break
 	default:
 		return nil, errors.New("unsupported database")
 	}
@@ -164,7 +176,7 @@ func NewDB(config *model.Config) (*Database, error) {
 func DropDB(database *Database) error {
 	var err error
 	switch database.Type {
-	case model.SQLite, model.Postgres, model.Mysql:
+	case model.Postgres:
 		files := migrationFiles(database, "down")
 		for _, f := range files {
 			result := database.Query(f.Data)
@@ -181,7 +193,7 @@ func InstallDB(database *Database) error {
 
 	database.reset()
 	switch database.Type {
-	case model.SQLite, model.Postgres, model.Mysql:
+	case model.Postgres:
 		err = migrationUp(database)
 		break
 	}
@@ -191,24 +203,20 @@ func InstallDB(database *Database) error {
 
 func (d *Database) reset() {
 	switch d.Type {
-	case model.SQLite:
-		if d.Reset {
-			d.DB.Exec("PRAGMA writable_schema = 1;")
-			d.DB.Exec("delete from sqlite_master where type in ('table', 'index', 'trigger');")
-			d.DB.Exec("PRAGMA writable_schema = 0;")
-			d.DB.Exec("VACUUM;")
-		}
-		break
 	case model.Postgres:
 		if d.Reset {
-			d.DB.Exec("DROP SCHEMA public CASCADE;")
-			d.DB.Exec("CREATE SCHEMA public;")
-			d.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
-			d.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+			//d.DB.Exec("DROP SCHEMA public CASCADE;")
+			//d.DB.Exec("CREATE SCHEMA public;")
+			//d.DB.Exec("GRANT ALL ON SCHEMA public TO postgres;")
+			//d.DB.Exec("GRANT ALL ON SCHEMA public TO public;")
+			//d.DB.Exec("")
+			files := migrationFiles(d, "down")
+			for _, f := range files {
+				if _, err := d.DB.Exec(f.Data); err != nil {
+					panic(err)
+				}
+			}
 		}
-		break
-	case model.Mysql:
-
 		break
 	}
 }
@@ -240,14 +248,21 @@ func migrationFiles(db *Database, typ string) []sqlS {
 		}
 	}
 
+	if typ == "down" {
+		sort.Slice(sqls, func(i, j int) bool {
+			return sqls[i].Number > sqls[j].Number
+		})
+	}
+
 	return sqls
 }
 
 func migrationUp(db *Database) error {
-	err := baseMigrations(db)
-	err = newMigrations(db)
+	if err := baseMigrations(db); err != nil {
+		return err
+	}
 
-	return err
+	return newMigrations(db)
 }
 
 func baseMigrations(db *Database) error {
@@ -261,7 +276,7 @@ func baseMigrations(db *Database) error {
 			tx, _ := db.DB.Beginx()
 			for _, f := range files {
 				switch f.Name {
-				case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+				case "01.postgres.up.sql":
 					_, err = tx.Exec(f.Data)
 					break
 				}
@@ -294,7 +309,7 @@ func newMigrations(db *Database) error {
 
 	for _, f := range files {
 		switch f.Name {
-		case "01.postgres.up.sql", "01.sqlite.up.sql", "01.mysql.up.sql":
+		case "01.postgres.up.sql":
 			break
 		default:
 			if len(lastMigration) > 0 {
@@ -344,17 +359,6 @@ func dbError(db *Database, err error) Error {
 			}
 		}
 		break
-	case model.Mysql:
-
-		break
-	case model.SQLite:
-		if SQLiteErr, ok := err.(sqlite3.Error); ok {
-			switch SQLiteErr.Code.Error() {
-			case "SQL logic error":
-				return InternalError
-			}
-		}
-		break
 	}
 
 	return -1
@@ -397,7 +401,7 @@ func (d *Database) commit() *Database {
 }
 
 // QueryWithModel database query builder with given model
-func (d *Database) QueryWithModel(query string, target DBInterface, params ...interface{}) Result {
+func (d *Database) QueryWithModel(query string, target interface{}, params ...interface{}) Result {
 	return d.query(query, target, params...)
 }
 
@@ -406,7 +410,7 @@ func (d *Database) Query(query string, params ...interface{}) Result {
 	return d.query(query, nil, params...)
 }
 
-func (d *Database) query(query string, target DBInterface, params ...interface{}) Result {
+func (d *Database) query(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
 
 	if d.Error != nil {
@@ -429,15 +433,35 @@ func (d *Database) query(query string, target DBInterface, params ...interface{}
 		result.Error = err
 		return result
 	}
+	defer rows.Close()
+
+	var arr reflect.Value
+	var v reflect.Value
+	if target != nil {
+		arr = reflect.ValueOf(target).Elem()
+		v = reflect.New(reflect.TypeOf(target).Elem().Elem())
+	}
 
 	for rows.Next() {
 		if target != nil {
-			result.Error = rows.StructScan(&target)
+			if err := rows.StructScan(v.Interface()); err != nil {
+				result.Error = err
+				break
+			}
+			arr.Set(reflect.Append(arr, v.Elem()))
 		} else {
-			result.Rows, result.Error = rows.SliceScan()
+			row, err := rows.SliceScan()
+			if err != nil {
+				result.Error = err
+				break
+			}
+			result.Rows = append(result.Rows, row)
 		}
 	}
-	defer rows.Close()
+	if err := rows.Err(); err != nil {
+		result.Error = err
+		return result
+	}
 
 	return result
 }
@@ -454,9 +478,10 @@ func (d *Database) QueryRow(query string, params ...interface{}) Result {
 
 func (d *Database) queryRow(query string, target interface{}, params ...interface{}) Result {
 	result := Result{}
+	result.QueryType = "row"
 
 	var err error
-	var r interface{}
+	r := make(map[string]interface{})
 	var row *sqlx.Row
 
 	if d.Tx != nil {
@@ -468,13 +493,16 @@ func (d *Database) queryRow(query string, target interface{}, params ...interfac
 	if target != nil {
 		err = row.StructScan(target)
 	} else {
-		err = row.StructScan(r)
+		err = row.MapScan(r)
 	}
 
 	if err != nil {
 		d.rollback()
 		result.Error = err
+		return result
 	}
+
+	result.Rows = append(result.Rows, r)
 
 	return result
 }
@@ -494,42 +522,133 @@ func (d *Database) Transaction(cb func(tx *Tx) error) *Database {
 func (t *Tx) Select(table string, whereClause string) Result {
 	result := Result{}
 
+	result.QueryType = "row"
+
 	return result
 }
 
 // Insert query builder by database type
-func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) (sql.Result, error) {
-	_, c1, namedParams := GetChanges(m, data, "insert")
-	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ","))
+func (d *Database) Insert(m DBInterface, data interface{}, keys ...string) error {
+	_, c1, _ := GetChanges(m, data, "insert")
 
-	if d.Type == model.SQLite {
-		_s := strings.Split(str, "returning")
-		str = _s[0]
+	d.QueryType = "insert"
+
+	str, _ := insertSQL(c1, m.TableName(), strings.Join(keys, ", "))
+
+	var stmt *sqlx.NamedStmt
+	var err error
+
+	if d.Tx != nil {
+		stmt, err = d.Tx.PrepareNamed(str)
+	} else {
+		stmt, err = d.DB.PrepareNamed(str)
 	}
 
-	query, args, _ := sqlx.Named(str, namedParams)
-	_, args, _ = sqlx.In(query, args...)
-
-	r, e := d.DB.Exec(str, args...)
-
-	if e == nil {
-		id, _ := r.LastInsertId()
-		reflect.ValueOf(m).Elem().FieldByName("ID").SetInt(id)
+	if err != nil {
+		d.Error = err
+		return err
 	}
 
-	return r, e
+	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+		return err
+	}
+
+	if err := stmt.Close(); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // Update query builder by database type
-func (t *Tx) Update(table string, whereClause string, data interface{}) Result {
-	result := Result{}
+func (d *Database) Update(m DBInterface, data interface{}, whereClause *string, keys ...string) error {
+	id := reflect.ValueOf(reflect.ValueOf(m).Interface()).Elem().FieldByName("ID").Int()
+	reflect.ValueOf(data).Elem().FieldByName("ID").SetInt(id)
 
-	return result
+	_, c1, _ := GetChanges(m, data, "update")
+
+	d.QueryType = "update"
+
+	var where string
+	if whereClause != nil {
+		where = *whereClause
+	} else {
+		where = "id = :id"
+	}
+
+	str, _ := updateSQL(c1, m.TableName(), where, strings.Join(keys, ", "))
+
+	var stmt *sqlx.NamedStmt
+	var err error
+
+	if d.Tx != nil {
+		stmt, err = d.Tx.PrepareNamed(str)
+	} else {
+		stmt, err = d.DB.PrepareNamed(str)
+	}
+
+	if err != nil {
+		d.Error = err
+		return err
+	}
+
+	if err := stmt.QueryRowx(data).StructScan(data); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+		return err
+	}
+
+	if err := stmt.Close(); err != nil {
+		d.Error = err
+		if d.Tx != nil {
+			d.rollback()
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // Delete query build by database type
-func (t *Tx) Delete(table Tables, whereClause string) Result {
+func (d *Database) Delete(table string, whereClause string, args ...interface{}) Result {
 	result := Result{}
+	result.QueryType = "row"
+
+	if d.Tx != nil {
+		res, err := d.Tx.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+		result.Error = err
+		if err != nil {
+			return result
+		}
+
+		if i, _ := res.RowsAffected(); i <= 0 {
+			result.Error = errors.New("do not found row affected")
+		}
+
+		return result
+	}
+
+	res, err := d.DB.Exec(fmt.Sprintf("DELETE FROM %s", table)+" WHERE "+whereClause, args...)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
+	if i, _ := res.RowsAffected(); i <= 0 {
+		result.Error = errors.New("do not found row affected")
+	}
 
 	return result
 }

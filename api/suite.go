@@ -1,4 +1,5 @@
-// Copyright 2019 Abdulkadir DILSIZ - TransferChain
+//-build !test
+// Copyright 2019 Abdulkadir Dilsiz
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,28 +18,38 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"github.com/akdilsiz/agente/cmn"
 	"github.com/akdilsiz/agente/database"
+	model2 "github.com/akdilsiz/agente/database/model"
 	"github.com/akdilsiz/agente/model"
 	"github.com/akdilsiz/agente/utils"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
+	"io/ioutil"
+	"mime/multipart"
 	"net"
 	"os"
 	"path"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
+
+var defaultLogger *utils.Logger
 
 // Suite application test structure
 type Suite struct {
 	suite.Suite
 	API  *API
 	Auth struct {
-		User  interface{}
+		User  *model2.User
 		Token string
 	}
 }
@@ -69,14 +80,17 @@ const (
 	XML ContentType = "application/xml"
 	// HTML Content type for api request
 	HTML ContentType = "text/html"
+	// FormData Multipart/form-data Content Type for api request
+	FormData ContentType = "multipart/form-data"
 )
 
 // TestResponse response model for test api request
 type TestResponse struct {
-	Success model.ResponseSuccess
-	Error   model.ResponseError
-	Other   interface{}
-	Status  int
+	RequestError error
+	Success      model.ResponseSuccess
+	Error        model.ResponseError
+	Other        interface{}
+	Status       int
 }
 
 // NewSuite build test application
@@ -93,15 +107,18 @@ func NewSuite() *Suite {
 	dbPath = appPath
 
 	logger := utils.NewLogger(string(mode))
-
+	defaultLogger = logger
 	viper.SetConfigName(configFile)
 	viper.AddConfigPath(appPath)
 	err := viper.ReadInConfig()
 	cmn.FailOnError(logger, err)
 
 	config := &model.Config{
+		NodeType:     model.Node(viper.GetString("TYPE")),
 		Path:         appPath,
+		LibPath:      path.Join(appPath, "files"),
 		Port:         viper.GetInt("PORT"),
+		SecretKey:    viper.GetString("SECRET_KEY"),
 		DB:           model.DB(viper.GetString("DB")),
 		DBPath:       dbPath,
 		DBName:       viper.GetString("DB_NAME"),
@@ -133,19 +150,67 @@ func NewSuite() *Suite {
 	newApp.Database = db
 	newApp.Mode = model.Test
 
+	ch := make(chan bool)
+	go genNode(ch, newApp)
+	<-ch
+
 	newAPI := NewAPI(newApp)
 
 	return &Suite{API: newAPI}
 }
 
+func genNode(ch chan bool, app *cmn.App) {
+	app.Logger.LogInfo("Generating node information")
+
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+
+	hostname = fmt.Sprintf("node_%s@%s", string(app.Mode), hostname)
+	node := model2.NewNode()
+	res := app.Database.QueryRowWithModel(fmt.Sprintf(`SELECT * FROM %s `+
+		`WHERE code = $1`+
+		`ORDER BY id DESC LIMIT 1`,
+		node.TableName()),
+		node,
+		hostname)
+
+	app.Config.NodeName = hostname
+
+	if res.Error != nil {
+		node.Name = hostname
+		node.Code = hostname
+		err := app.Database.Insert(new(model2.Node), node, "id", "inserted_at")
+		if err != nil {
+			panic(errors.New("node information could not be created on the database, " + err.Error()))
+		}
+	}
+
+	app.Node = node
+
+	app.Logger.LogInfo("Node information was created")
+
+	time.AfterFunc(time.Millisecond * 100, func() {
+		ch<-true
+	})
+}
+
 // Run run test suites
 func Run(t *testing.T, s suite.TestingSuite) {
+	defaultLogger.LogInfo(fmt.Sprintf("Started %s tests", reflect.TypeOf(s).Name()))
 	suite.Run(t, s)
+	defaultLogger.LogInfo(fmt.Sprintf("Finish %s tests", reflect.TypeOf(s).Name()))
 }
 
 // JSON api json request
 func (s *Suite) JSON(method Method, path string, arg interface{}) *TestResponse {
 	return s.request(JSON, method, path, arg)
+}
+
+// File api form-data request
+func (s *Suite) File(method Method, path string, arg interface{}, fileParam ...string) *TestResponse {
+	return s.request(FormData, method, path, arg, fileParam...)
 }
 
 //// XML api xml request
@@ -159,40 +224,98 @@ func SetupSuite(s *Suite) {}
 // TearDownSuite after suite processes
 func TearDownSuite(s *Suite) {}
 
+// UserAuth generate test request auth provides
+func UserAuth(s *Suite) {
+	user := model2.NewUser("1234")
+	user.Username = "testUser"
+	user.Email = "testUser@tecpor.com"
+	user.IsActive = true
+	user.NodeID = s.API.App.Node.ID
+	userModel := new(model2.User)
+
+	err := s.API.App.Database.Insert(userModel, user,
+		"id", "inserted_at")
+	if err != nil {
+		panic(err)
+	}
+
+	token, _ := s.API.JWTAuth.Generate(user.ID)
+	s.Auth.Token = token
+	s.Auth.User = user
+}
+
 // request test request for api
-func (s *Suite) request(contentType ContentType, method Method, path string, body interface{}) *TestResponse {
+func (s *Suite) request(contentType ContentType, method Method, path string, body interface{}, fileParam ...string) *TestResponse {
+	testResponse := &TestResponse{}
 	var err error
 	req := fasthttp.AcquireRequest()
 	req.Header.SetHost(s.API.Router.Addr)
 	req.Header.SetRequestURI(path)
-	req.Header.SetContentType(string(contentType) + "; charset=utf-8")
 	if s.Auth.Token != "" {
 		req.Header.Set("Authorization", "Bearer "+s.Auth.Token)
 	}
 	req.Header.SetMethod(string(method))
+	resp := fasthttp.AcquireResponse()
 
 	if body != nil {
 		switch contentType {
 		case JSON:
+			req.Header.SetContentType(string(contentType) + "; charset=utf-8")
 			b, err := json.Marshal(body)
 			if err == nil {
 				req.SetBody(b)
 			}
 			break
+		case FormData:
+			b, _ := body.(map[string]interface{})
+			body2 := new(bytes.Buffer)
+			writer := multipart.NewWriter(body2)
+
+			for _, f := range fileParam {
+				file, err := os.Open(b[f].(string))
+				if err == nil {
+					fileContents, err := ioutil.ReadAll(file)
+					if err == nil {
+						fi, err := file.Stat()
+						if err == nil {
+							file.Close()
+							part, err := writer.CreateFormFile(f, fi.Name())
+							if err == nil {
+								part.Write(fileContents)
+							}
+						}
+					}
+				}
+			}
+
+			for key, val := range b {
+				if ok, _ := utils.InArray(key, fileParam); !ok {
+					_ = writer.WriteField(key, val.(string))
+				}
+			}
+			err = writer.Close()
+			if err != nil {
+				testResponse.RequestError = err
+				return testResponse
+			}
+			req.SetBodyStream(body2, body2.Len())
+			req.Header.SetContentType(writer.FormDataContentType())
+			break
 		}
 	}
 
-	resp := fasthttp.AcquireResponse()
-	s.serveAPI(s.API.Router.Handler.ServeFastHTTP, req, resp)
-
-	testResponse := &TestResponse{}
+	err = s.serveAPI(s.API.Router.Handler.ServeFastHTTP, req, resp)
+	if err != nil {
+		testResponse.RequestError = err
+		return testResponse
+	}
 	if resp.StatusCode() >= 200 && resp.StatusCode() < 300 {
 		var ts1 model.ResponseSuccess
 		err = json.Unmarshal(resp.Body(), &ts1)
 		if err == nil {
 			testResponse.Success = ts1
 		}
-	} else if resp.StatusCode() >= 400 && resp.StatusCode() < 500 {
+	} else if resp.StatusCode() >= 400 && resp.StatusCode() < 501 {
 		var ts2 model.ResponseError
 		err = json.Unmarshal(resp.Body(), &ts2)
 		if err == nil {
@@ -206,7 +329,6 @@ func (s *Suite) request(contentType ContentType, method Method, path string, bod
 	return testResponse
 }
 
-// serveAPI
 func (s *Suite) serveAPI(handler fasthttp.RequestHandler, req *fasthttp.Request, res *fasthttp.Response) error {
 	ln := fasthttputil.NewInmemoryListener()
 	defer ln.Close()
