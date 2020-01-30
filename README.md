@@ -7,10 +7,10 @@
     <img src="https://travis-ci.org/forgolang/agente.svg?branch=master"/>
    </a>
    <a href="https://github.com/forgolang/agente/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
+    <img src="https://img.shields.io/github/license/forgolang/agente"/>
    </a>
-   <a href="https://codecov.io/gh/akdilsiz/agente">
-     <img src="https://codecov.io/gh/akdilsiz/agente/branch/master/graph/badge.svg" />
+   <a href="https://codecov.io/gh/forgolang/agente">
+     <img src="https://codecov.io/gh/forgolang/agente/branch/master/graph/badge.svg" />
    </a>
    <a href="https://goreportcard.com/report/github.com/forgolang/agente">
     <img src="https://goreportcard.com/badge/github.com/forgolang/agente"/>
@@ -18,8 +18,6 @@
  </p>
 
 Distributed simple and robust release management and monitoring system.
-
-This project currently sponsored by **[@TransferChain](https://github.com/TransferChain)**
 
 ***This project on going work.*
 
@@ -37,7 +35,7 @@ This project currently sponsored by **[@TransferChain](https://github.com/Transf
  - Redis or RabbitMQ
  - PostgreSQL
 
-# Docker Environment
+## Docker Environment
 For PostgreSQL
 ```shell script
 docker run --name agente_PostgreSQL -e POSTGRES_PASSWORD=123456 -e POSTGRES_USER=agente -p 5432:5432 -d postgres

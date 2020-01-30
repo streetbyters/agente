@@ -43,6 +43,7 @@ import (
 )
 
 var defaultLogger *utils.Logger
+var newAPI *API
 
 // Suite application test structure
 type Suite struct {
@@ -140,6 +141,13 @@ func NewSuite() *Suite {
 		Scheduler:    viper.GetString("SCHEDULER"),
 	}
 
+	if newAPI != nil {
+		ch := make(chan bool)
+		go genNode(ch, newAPI.App)
+		<-ch
+		return &Suite{API: newAPI}
+	}
+
 	db, err := database.NewDB(config)
 	cmn.FailOnError(logger, err)
 	db.Logger = logger
@@ -154,7 +162,7 @@ func NewSuite() *Suite {
 	go genNode(ch, newApp)
 	<-ch
 
-	newAPI := NewAPI(newApp)
+	newAPI = NewAPI(newApp)
 
 	return &Suite{API: newAPI}
 }
@@ -222,7 +230,15 @@ func (s *Suite) File(method Method, path string, arg interface{}, fileParam ...s
 func SetupSuite(s *Suite) {}
 
 // TearDownSuite after suite processes
-func TearDownSuite(s *Suite) {}
+func TearDownSuite(s *Suite) {
+	_, err := s.API.App.Database.DB.Exec("SELECT truncate_tables($1)", s.API.App.Config.DBUser)
+	cmn.FailOnError(s.API.App.Logger, err)
+	ch := make(chan bool)
+	time.AfterFunc(time.Second*2, func() {
+		ch <- true
+	})
+	<-ch
+}
 
 // UserAuth generate test request auth provides
 func UserAuth(s *Suite) {
