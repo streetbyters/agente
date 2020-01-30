@@ -299,9 +299,9 @@ func newMigrations(db *Database) error {
 	var err error
 	result := Result{}
 	result = db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
-	var lastMigration []interface{}
+	var lastMigration interface{}
 	if len(result.Rows) > 0 {
-		lastMigration = result.Rows[:len(result.Rows)]
+		lastMigration = result.Rows[len(result.Rows)-1]
 	}
 
 	tx, err := db.DB.Beginx()
@@ -312,8 +312,9 @@ func newMigrations(db *Database) error {
 		case "01.postgres.up.sql":
 			break
 		default:
-			if len(lastMigration) > 0 {
-				if f.Number > int(lastMigration[1].(int64)) {
+			if lastMigration != nil {
+				ll := lastMigration.([]interface{})
+				if f.Number > int(ll[1].(int64)) {
 					_, err = tx.Exec(f.Data)
 					if err != nil {
 						tx.Rollback()
