@@ -37,6 +37,18 @@ This project currently sponsored by **[@TransferChain](https://github.com/Transf
  - Redis or RabbitMQ
  - PostgreSQL
 
+# Docker Environment
+For PostgreSQL
+```shell script 
+docker run --name agente_PostgreSQL -e POSTGRES_PASSWORD=123456 -e POSTGRES_USER=agente -p 5432:5432 -d postgres
+
+docker exec agente_PostgreSQL psql --username=agente -c 'create database agente_dev;'
+```
+For RabbitMQ
+```shell script 
+docker run --hostname my-rabbit --name agente_RabbitMQ -e RABBITMQ_DEFAULT_USER=local -e RABBITMQ_DEFAULT_PASS=local -p 5672:5672 -d rabbitmq:3-management
+```
+
 ## Development
 ```shell script
 git clone -b develop https://github.com/akdilsiz/agente
