@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/akdilsiz/agente/model"
+	"github.com/forgolang/agente/model"
 	"github.com/valyala/fasthttp"
 	"os"
 	"path/filepath"

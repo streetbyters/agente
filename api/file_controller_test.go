@@ -2,7 +2,7 @@ package api
 
 import (
 	"fmt"
-	"github.com/akdilsiz/agente/database/model"
+	"github.com/forgolang/agente/database/model"
 	"github.com/valyala/fasthttp"
 	"testing"
 	"time"

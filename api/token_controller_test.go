@@ -1,8 +1,8 @@
 package api
 
 import (
-	model2 "github.com/akdilsiz/agente/database/model"
-	"github.com/akdilsiz/agente/model"
+	model2 "github.com/forgolang/agente/database/model"
+	"github.com/forgolang/agente/model"
 	"github.com/valyala/fasthttp"
 	"testing"
 	"time"

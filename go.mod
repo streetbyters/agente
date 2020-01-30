@@ -1,4 +1,4 @@
-module github.com/akdilsiz/agente
+module github.com/forgolang/agente
 
 go 1.13
 
