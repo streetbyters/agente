@@ -2,8 +2,8 @@ package api
 
 import (
 	"fmt"
-	"github.com/akdilsiz/agente/database/model"
-	model2 "github.com/akdilsiz/agente/model"
+	"github.com/forgolang/agente/database/model"
+	model2 "github.com/forgolang/agente/model"
 	"github.com/valyala/fasthttp"
 	"strconv"
 	"testing"

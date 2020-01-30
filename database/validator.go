@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/akdilsiz/agente/utils"
+	"github.com/forgolang/agente/utils"
 	"github.com/lib/pq"
 	"gopkg.in/go-playground/validator.v9"
 	"reflect"

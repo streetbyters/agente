@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -17,7 +17,7 @@
 package model
 
 import (
-	"github.com/akdilsiz/agente/database"
+	"github.com/forgolang/agente/database"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )

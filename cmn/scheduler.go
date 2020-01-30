@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,7 +18,7 @@ package cmn
 
 import (
 	"errors"
-	"github.com/akdilsiz/agente/utils"
+	"github.com/forgolang/agente/utils"
 )
 
 // Scheduler application job scheduler
