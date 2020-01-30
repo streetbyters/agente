@@ -35,7 +35,7 @@ Distributed simple and robust release management and monitoring system.
  - Redis or RabbitMQ
  - PostgreSQL
 
-# Docker Environment
+## Docker Environment
 For PostgreSQL
 ```shell script
 docker run --name agente_PostgreSQL -e POSTGRES_PASSWORD=123456 -e POSTGRES_USER=agente -p 5432:5432 -d postgres
