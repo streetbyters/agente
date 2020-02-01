@@ -18,7 +18,7 @@ jobs:
           RABBITMQ_DEFAULT_PASS: local
       - image: circleci/redis:alpine
 
-    working_directory: /go/src/github.com/forgolang/forgolang_forum
+    working_directory: /go/src/github.com/forgolang/agente
     steps:
       - checkout
       - run: sleep 10
