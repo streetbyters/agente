@@ -3,23 +3,21 @@
   <img height="150" src="assets/agente.png"/>
  </p>
  <p align="center">
-   <a href="https://travis-ci.org/akdilsiz/agente">
-    <img src="https://travis-ci.org/akdilsiz/agente.svg?branch=master"/>
+   <a href="https://travis-ci.org/forgolang/agente">
+    <img src="https://travis-ci.org/forgolang/agente.svg?branch=master"/>
    </a>
-   <a href="https://github.com/akdilsiz/agente/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/akdilsiz/agente"/>
+   <a href="https://github.com/forgolang/agente/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/forgolang/agente"/>
    </a>
-   <a href="https://codecov.io/gh/akdilsiz/agente">
-     <img src="https://codecov.io/gh/akdilsiz/agente/branch/master/graph/badge.svg" />
+   <a href="https://codecov.io/gh/forgolang/agente">
+     <img src="https://codecov.io/gh/forgolang/agente/branch/master/graph/badge.svg" />
    </a>
-   <a href="https://goreportcard.com/report/github.com/akdilsiz/agente">
-    <img src="https://goreportcard.com/badge/github.com/akdilsiz/agente"/>
+   <a href="https://goreportcard.com/report/github.com/forgolang/agente">
+    <img src="https://goreportcard.com/badge/github.com/forgolang/agente"/>
    </a>
  </p>
 
 Distributed simple and robust release management and monitoring system.
-
-This project currently sponsored by **[@TransferChain](https://github.com/TransferChain)**
 
 ***This project on going work.*
 
@@ -37,9 +35,21 @@ This project currently sponsored by **[@TransferChain](https://github.com/Transf
  - Redis or RabbitMQ
  - PostgreSQL
 
+## Docker Environment
+For PostgreSQL
+```shell script
+docker run --name agente_PostgreSQL -e POSTGRES_PASSWORD=123456 -e POSTGRES_USER=agente -p 5432:5432 -d postgres
+
+docker exec agente_PostgreSQL psql --username=agente -c 'create database agente_dev;'
+```
+For RabbitMQ
+```shell script
+docker run --hostname my-rabbit --name agente_RabbitMQ -e RABBITMQ_DEFAULT_USER=local -e RABBITMQ_DEFAULT_PASS=local -p 5672:5672 -d rabbitmq:3-management
+```
+
 ## Development
 ```shell script
-git clone -b develop https://github.com/akdilsiz/agente
+git clone -b develop https://github.com/forgolang/agente
 
 go mod vendor
 
@@ -61,7 +71,7 @@ I would like to accept any contributions to make Agente better and feature rich.
 [See detail](docs/contribution.md)
 ## LICENSE
 
-Copyright 2019 Abdulkadir Dilsiz
+Copyright 2019 Forgolang Community
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

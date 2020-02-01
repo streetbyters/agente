@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -18,7 +18,7 @@ package cmn
 
 import (
 	"fmt"
-	model2 "github.com/akdilsiz/agente/database/model"
+	model2 "github.com/forgolang/agente/database/model"
 	"github.com/jasonlvhit/gocron"
 	"github.com/jmoiron/sqlx"
 )

@@ -2,8 +2,8 @@ package cmn
 
 import (
 	"errors"
-	"github.com/akdilsiz/agente/model"
-	"github.com/akdilsiz/agente/utils"
+	"github.com/forgolang/agente/model"
+	"github.com/forgolang/agente/utils"
 	"os"
 	"testing"
 )

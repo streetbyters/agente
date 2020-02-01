@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -20,9 +20,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	pluggableError "github.com/akdilsiz/agente/errors"
-	"github.com/akdilsiz/agente/model"
-	"github.com/akdilsiz/agente/utils"
+	pluggableError "github.com/forgolang/agente/errors"
+	"github.com/forgolang/agente/model"
+	"github.com/forgolang/agente/utils"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -299,9 +299,9 @@ func newMigrations(db *Database) error {
 	var err error
 	result := Result{}
 	result = db.Query("SELECT * FROM " + string(tMigration) + " AS m ORDER BY id ASC")
-	var lastMigration []interface{}
+	var lastMigration interface{}
 	if len(result.Rows) > 0 {
-		lastMigration = result.Rows[:len(result.Rows)]
+		lastMigration = result.Rows[len(result.Rows)-1]
 	}
 
 	tx, err := db.DB.Beginx()
@@ -312,8 +312,9 @@ func newMigrations(db *Database) error {
 		case "01.postgres.up.sql":
 			break
 		default:
-			if len(lastMigration) > 0 {
-				if f.Number > int(lastMigration[1].(int64)) {
+			if lastMigration != nil {
+				ll := lastMigration.([]interface{})
+				if f.Number > int(ll[1].(int64)) {
 					_, err = tx.Exec(f.Data)
 					if err != nil {
 						tx.Rollback()

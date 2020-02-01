@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -20,12 +20,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/akdilsiz/agente/api"
-	"github.com/akdilsiz/agente/cmn"
-	"github.com/akdilsiz/agente/database"
-	model2 "github.com/akdilsiz/agente/database/model"
-	"github.com/akdilsiz/agente/model"
-	"github.com/akdilsiz/agente/utils"
+	"github.com/forgolang/agente/api"
+	"github.com/forgolang/agente/cmn"
+	"github.com/forgolang/agente/database"
+	model2 "github.com/forgolang/agente/database/model"
+	"github.com/forgolang/agente/model"
+	"github.com/forgolang/agente/utils"
 	"github.com/spf13/viper"
 	"os"
 	"os/signal"

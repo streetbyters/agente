@@ -1,4 +1,4 @@
-// Copyright 2019 Abdulkadir Dilsiz
+// Copyright 2019 Forgolang Community
 // Licensed to the Apache Software Foundation (ASF) under one or more
 // contributor license agreements.  See the NOTICE file distributed with
 // this work for additional information regarding copyright ownership.
@@ -21,8 +21,8 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	errors2 "github.com/akdilsiz/agente/errors"
-	"github.com/akdilsiz/agente/model"
+	errors2 "github.com/forgolang/agente/errors"
+	"github.com/forgolang/agente/model"
 	"github.com/fate-lovely/phi"
 	"github.com/valyala/fasthttp"
 	"net/http"

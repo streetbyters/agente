@@ -1,0 +1,30 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.11
+        environment:
+          GO111MODULE: "on"
+      - image: postgres:11.5-alpine
+        environment:
+          POSTGRES_USER: agente
+          POSTGRES_DB: agente_test
+      - image: rabbitmq:3.5.4
+        environment:
+          RABBITMQ_DEFAULT_USER: local
+          RABBITMQ_DEFAULT_PASS: local
+      - image: circleci/redis:alpine
+
+    working_directory: /go/src/github.com/forgolang/forgolang_forum
+    steps:
+      - checkout
+      - run: sleep 10
+      - run: go get -v -t -d ./...
+      - run: go mod vendor
+      - run: sleep 5
+      - run: go run ./cmd -mode test -migrate -reset
+      - run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
+      - run: bash <(curl -s https://codecov.io/bash)
