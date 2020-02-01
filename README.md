@@ -3,8 +3,8 @@
   <img height="150" src="assets/agente.png"/>
  </p>
  <p align="center">
-   <a href="https://travis-ci.org/forgolang/agente">
-    <img src="https://travis-ci.org/forgolang/agente.svg?branch=master"/>
+   <a href="https://circleci.com/gh/forgolang/agente">
+    <img src="https://circleci.com/gh/forgolang/agente.svg?style=svg"/>
    </a>
    <a href="https://github.com/forgolang/agente/blob/master/LICENSE">
     <img src="https://img.shields.io/github/license/forgolang/agente"/>
