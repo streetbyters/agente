@@ -3,17 +3,17 @@
   <img height="150" src="assets/agente.png"/>
  </p>
  <p align="center">
-   <a href="https://circleci.com/gh/forgolang/agente">
-    <img src="https://circleci.com/gh/forgolang/agente.svg?style=svg"/>
+   <a href="https://circleci.com/gh/streetbyters/agente">
+    <img src="https://circleci.com/gh/streetbyters/agente.svg?style=svg"/>
    </a>
-   <a href="https://github.com/forgolang/agente/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/forgolang/agente"/>
+   <a href="https://github.com/streetbyters/agente/blob/master/LICENSE">
+    <img src="https://img.shields.io/github/license/streetbyters/agente"/>
    </a>
-   <a href="https://codecov.io/gh/forgolang/agente">
-     <img src="https://codecov.io/gh/forgolang/agente/branch/master/graph/badge.svg" />
+   <a href="https://codecov.io/gh/streetbyters/agente">
+     <img src="https://codecov.io/gh/streetbyters/agente/branch/master/graph/badge.svg" />
    </a>
-   <a href="https://goreportcard.com/report/github.com/forgolang/agente">
-    <img src="https://goreportcard.com/badge/github.com/forgolang/agente"/>
+   <a href="https://goreportcard.com/report/github.com/streetbyters/agente">
+    <img src="https://goreportcard.com/badge/github.com/streetbyters/agente"/>
    </a>
  </p>
 
@@ -49,7 +49,7 @@ docker run --hostname my-rabbit --name agente_RabbitMQ -e RABBITMQ_DEFAULT_USER=
 
 ## Development
 ```shell script
-git clone -b develop https://github.com/forgolang/agente
+git clone -b develop https://github.com/streetbyters/agente
 
 go mod vendor
 

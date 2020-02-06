@@ -18,7 +18,7 @@ package cmn
 
 import (
 	"fmt"
-	"github.com/forgolang/agente/model"
+	"github.com/streetbyters/agente/model"
 )
 
 // Job structure

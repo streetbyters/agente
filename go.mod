@@ -1,4 +1,4 @@
-module github.com/forgolang/agente
+module github.com/streetbyters/agente
 
 go 1.13
 

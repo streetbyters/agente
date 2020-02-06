@@ -20,13 +20,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	pluggableError "github.com/forgolang/agente/errors"
-	"github.com/forgolang/agente/model"
-	"github.com/forgolang/agente/utils"
 	_ "github.com/go-sql-driver/mysql" // Mysql Driver
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	_ "github.com/lib/pq" // Postgres Driver
+	pluggableError "github.com/streetbyters/agente/errors"
+	"github.com/streetbyters/agente/model"
+	"github.com/streetbyters/agente/utils"
 	"github.com/valyala/fasthttp"
 	"io/ioutil"
 	"path/filepath"

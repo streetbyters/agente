@@ -17,7 +17,7 @@
 package api
 
 import (
-	"github.com/forgolang/agente/model"
+	"github.com/streetbyters/agente/model"
 	"github.com/valyala/fasthttp"
 	"os"
 	"path/filepath"
