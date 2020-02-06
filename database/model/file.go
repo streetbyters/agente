@@ -17,8 +17,8 @@
 package model
 
 import (
-	"github.com/forgolang/agente/database"
-	"github.com/forgolang/agente/model"
+	"github.com/streetbyters/agente/database"
+	"github.com/streetbyters/agente/model"
 	"gopkg.in/guregu/null.v3/zero"
 	"time"
 )

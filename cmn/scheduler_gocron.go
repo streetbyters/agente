@@ -18,9 +18,9 @@ package cmn
 
 import (
 	"fmt"
-	model2 "github.com/forgolang/agente/database/model"
 	"github.com/jasonlvhit/gocron"
 	"github.com/jmoiron/sqlx"
+	model2 "github.com/streetbyters/agente/database/model"
 )
 
 // SchedulerGoCron gocron package adapter

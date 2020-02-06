@@ -20,13 +20,13 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/forgolang/agente/api"
-	"github.com/forgolang/agente/cmn"
-	"github.com/forgolang/agente/database"
-	model2 "github.com/forgolang/agente/database/model"
-	"github.com/forgolang/agente/model"
-	"github.com/forgolang/agente/utils"
 	"github.com/spf13/viper"
+	"github.com/streetbyters/agente/api"
+	"github.com/streetbyters/agente/cmn"
+	"github.com/streetbyters/agente/database"
+	model2 "github.com/streetbyters/agente/database/model"
+	"github.com/streetbyters/agente/model"
+	"github.com/streetbyters/agente/utils"
 	"os"
 	"os/signal"
 	"path"
@@ -189,7 +189,7 @@ func genNode(app *cmn.App) {
 		node.Code = hostname
 		err := app.Database.Insert(new(model2.Node), node, "id", "inserted_at")
 		if err != nil {
-			panic(errors.New("node information could not be created on the database, "+err.Error()))
+			panic(errors.New("node information could not be created on the database, " + err.Error()))
 		}
 	}
 

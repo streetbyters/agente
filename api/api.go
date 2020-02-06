@@ -19,9 +19,9 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/forgolang/agente/cmn"
-	pluggableError "github.com/forgolang/agente/errors"
-	"github.com/forgolang/agente/model"
+	"github.com/streetbyters/agente/cmn"
+	pluggableError "github.com/streetbyters/agente/errors"
+	"github.com/streetbyters/agente/model"
 	"github.com/valyala/fasthttp"
 	"net/url"
 	"strconv"

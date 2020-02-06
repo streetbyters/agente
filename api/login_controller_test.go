@@ -1,8 +1,8 @@
 package api
 
 import (
-	model2 "github.com/forgolang/agente/database/model"
-	"github.com/forgolang/agente/model"
+	model2 "github.com/streetbyters/agente/database/model"
+	"github.com/streetbyters/agente/model"
 	"github.com/valyala/fasthttp"
 	"testing"
 )

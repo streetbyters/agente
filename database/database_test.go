@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/forgolang/agente/model"
-	"github.com/forgolang/agente/utils"
+	"github.com/streetbyters/agente/model"
+	"github.com/streetbyters/agente/utils"
 	"io/ioutil"
 	"os"
 	"path/filepath"

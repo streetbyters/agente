@@ -17,8 +17,8 @@
 package cmn
 
 import (
-	"github.com/forgolang/agente/model"
 	"github.com/streadway/amqp"
+	"github.com/streetbyters/agente/model"
 	"net/url"
 	"strconv"
 )

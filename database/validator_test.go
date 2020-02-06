@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/forgolang/agente/model"
+	"github.com/streetbyters/agente/model"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/guregu/null.v3/zero"
 	"testing"

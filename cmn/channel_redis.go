@@ -17,8 +17,8 @@
 package cmn
 
 import (
-	"github.com/forgolang/agente/model"
 	"github.com/go-redis/redis/v7"
+	"github.com/streetbyters/agente/model"
 	"strconv"
 	"strings"
 )

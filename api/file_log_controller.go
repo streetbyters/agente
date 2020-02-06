@@ -18,9 +18,9 @@ package api
 
 import (
 	"fmt"
-	"github.com/forgolang/agente/database/model"
-	model2 "github.com/forgolang/agente/model"
 	"github.com/fate-lovely/phi"
+	"github.com/streetbyters/agente/database/model"
+	model2 "github.com/streetbyters/agente/model"
 	"github.com/valyala/fasthttp"
 )
 

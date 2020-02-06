@@ -17,7 +17,7 @@
 package model
 
 import (
-	"github.com/forgolang/agente/database"
+	"github.com/streetbyters/agente/database"
 	"time"
 )
 

@@ -22,12 +22,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/forgolang/agente/cmn"
-	"github.com/forgolang/agente/database"
-	model2 "github.com/forgolang/agente/database/model"
-	"github.com/forgolang/agente/model"
-	"github.com/forgolang/agente/utils"
 	"github.com/spf13/viper"
+	"github.com/streetbyters/agente/cmn"
+	"github.com/streetbyters/agente/database"
+	model2 "github.com/streetbyters/agente/database/model"
+	"github.com/streetbyters/agente/model"
+	"github.com/streetbyters/agente/utils"
 	"github.com/stretchr/testify/suite"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttputil"
@@ -199,8 +199,8 @@ func genNode(ch chan bool, app *cmn.App) {
 
 	app.Logger.LogInfo("Node information was created")
 
-	time.AfterFunc(time.Millisecond * 100, func() {
-		ch<-true
+	time.AfterFunc(time.Millisecond*100, func() {
+		ch <- true
 	})
 }
 

@@ -18,7 +18,7 @@ package cmn
 
 import (
 	"errors"
-	"github.com/forgolang/agente/utils"
+	"github.com/streetbyters/agente/utils"
 )
 
 // Scheduler application job scheduler

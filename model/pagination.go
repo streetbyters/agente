@@ -18,7 +18,7 @@ package model
 
 import (
 	"errors"
-	"github.com/forgolang/agente/utils"
+	"github.com/streetbyters/agente/utils"
 	"strings"
 )
 
